@@ -1,0 +1,4 @@
+@lazy true
+/*@debug true*/
+#root-view {background:#555;}
+#center-block {float:center; width:100; height:100; background:#f00;}
