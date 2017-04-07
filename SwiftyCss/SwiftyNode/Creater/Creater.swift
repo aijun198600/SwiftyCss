@@ -6,14 +6,16 @@ private let NodeSyntaxRe = Re("^([ \t]*)(.+) *$")
 
 extension Node {
     
-    // MARK: - Public Static
-    
-    public static func create(jade text: String, default def: String) -> [NodeProtocol]? {
-        return create(jade: text.components(separatedBy: "\n"), default: def)
+    public static func create(text: String, default def: String) -> [NodeProtocol]? {
+        return create(lines: Re.lexer(code: text, separator: "\n"), default: def)
     }
     
-    public static func create(jade lines: [String], default def: String) -> [NodeProtocol]? {
+    public static func create(lines: [String], default def: String) -> [NodeProtocol]? {
     
+        #if DEBUG
+            Node.debug.begin(tag: "create")
+        #endif
+        
         var res:[NodeProtocol] = []
         
         var level       = -1
@@ -24,11 +26,7 @@ extension Node {
             guard let m = NodeSyntaxRe.match(line), var text = m[2] else{
                 continue
             }
-            if lines.count > 2 {
-                text = text.replacingOccurrences(of: " ", with: "")
-            }
-            let nodes = create(selector: Select(text) , default: def)
-            
+            let nodes = _create(selector: text , default: def)
             let indent = m[1]!.replacingOccurrences(of: "\t", with: "    ").characters.count
             
             if level == -1 {
@@ -61,31 +59,29 @@ extension Node {
             }
             parent_stack.append(nodes.last!)
         }
+        
+        #if DEBUG
+            Node.debug.end(tag: "create", { Node.describing(res, deep: true) })
+        #endif
+        
         return res.isEmpty ? nil : res
     }
-    
-    
     
     // MARK: - Private Static
     
     private static let bundleName = Bundle.main.infoDictionary!["CFBundleName"] as? String
     
-    private static func create(selector: Select, default def: String? = nil) -> [NodeProtocol] {
+    private static func _create(selector text: String, default def: String? = nil) -> [NodeProtocol] {
+        
+        let selector = Select(creater: text)
         var res = [NodeProtocol]()
         var tar: NodeProtocol? = nil
         
         for rule in selector.rules {
-            
-            var attrs = [String]()
-            for c in rule.conditions {
-                attrs.append( c.exps.joined() )
-            }
             guard let tag = rule.tag ?? def else {
-                fatalError("[SwiftyNode.Creater] pattern error: \(selector.description)")
+                fatalError("[SwiftyNode Creater Error] pattern error: \(selector.description)")
             }
-            
-            let node = create(tag: tag, id: rule.id, class: rule.clas, attributes: attrs, default: def)
-            
+            let node = _create(tag: tag, id: rule.id, class: rule.clas, attributes: rule.attributes, default: def)
             if rule.combinator == "+" {
                 tar = tar?.parentNode
             }else if rule.combinator == "~" {
@@ -98,11 +94,11 @@ extension Node {
             }
             tar = node
         }
-        assert(res.isEmpty == false, "[SwiftyNode.Creater] pattern error: \(selector.description)")
+        assert(res.isEmpty == false, "[SwiftyNode Creater Error] pattern error: \(selector.description)")
         return res
     }
     
-    private static func create(tag: String, id: String? = nil, class clas: Set<String>? = nil, attributes: [String]? = nil, default def: String? = nil) -> NodeProtocol {
+    private static func _create(tag: String, id: String? = nil, class clas: Set<String>? = nil, attributes: [String]? = nil, default def: String? = nil) -> NodeProtocol {
         var type = NSClassFromString(tag) as? NSObject.Type
         if type == nil {
             type = NSClassFromString(bundleName! + "." + tag) as? NSObject.Type
@@ -114,16 +110,13 @@ extension Node {
             type = NSClassFromString(bundleName! + "." + def!) as? NSObject.Type
         }
         guard let node = type?.init() as? NodeProtocol else {
-            fatalError( "[SwiftyNode.Creater] Cant init \"\(bundleName!).\(tag)\" class \(String(describing: type))" )
+            fatalError( "[SwiftyNode Creater Error] Cant init \"\(bundleName!).\(tag)\" class \(String(describing: type))" )
         }
-        if let style = node.nodeStyle {
-            if style.tag.isEmpty == true {
-                _ = style.lazySet(key: "tag", value: tag)
-            }
-            _ = style.lazySet(key: "id", value: id)
-            _ = style.lazySet(key: "class", value: clas?.joined(separator: " "))
+        if node.nodeStyle.tag.isEmpty == true {
+            _ = node.nodeStyle.lazySet(key: "tag", value: tag)
         }
-        
+        _ = node.nodeStyle.lazySet(key: "id", value: id)
+        _ = node.nodeStyle.lazySet(key: "class", value: clas?.joined(separator: " "))
         if attributes != nil {
             for attr in attributes! {
                 if let kv = attr.components(separatedBy: "=", atAfter: 0, trim: .whitespacesAndNewlines) {

@@ -6,7 +6,7 @@
 //  Copyright © 2017年 Wang Liang. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
 //! Project version number for SwiftyCss.
 FOUNDATION_EXPORT double SwiftyCssVersionNumber;

@@ -1,248 +1,218 @@
 
-import UIKit
+#if os(iOS) || os(tvOS)
+    import UIKit
+#endif
+import QuartzCore
 import SwiftyNode
 import SwiftyBox
 
 extension CAStyle {
     
-    // MARK: - Static
-    
-    static func updataStyle(_ style: CAStyle, status: Node.Status) {
-        guard let layer = style.layer else {
+    static func updataFloatLayer(_ parent_style: CAStyle, _ chilren: [CALayer]? = nil){
+        guard let parent = parent_style.layer else {
             return
         }
-        if status.contains( .checkBorder ) {
-            CAStyle.updataBorderLayer(style)
-        }else if style.border != nil || style.borderLayer != nil {
-            if status.contains( .checkFloatSibling ) || status.contains( .checkChild ) {
-                CAStyle.updataBorderLayer(style)
-            }
-        }
-        
-        if status.contains( .checkAll ) {
-            var floats = [CALayer]()
-            for i in 0 ..< (layer.sublayers?.count ?? 0) {
-                if let sub = layer.sublayers![i].nodeStyle as? CAStyle {
-                    if sub.disable {
-                        continue
-                    }
-                    sub.refresh(all: true)
-                    if sub.isFloat {
-                        floats.append(layer.sublayers![i])
-                    }
-                }
-            }
-            if floats.isEmpty == false {
-                CAStyle.updataFloatLayer(style, layer, floats)
-            }
-            
-            if style.property["contentSize"] == "auto" {
-                CAStyle.updataContentSize(style)
-            }
-            
-        }else {
-            if status.contains(.checkFloatSibling) && !status.contains(.noFloatSibling) {
-                if let parent = layer.superlayer?.nodeStyle {
-                    Node.Ticker.add(style: parent, CAStyle.updataFloatParent)
-                }
-            }
-            
-            if status.contains( .checkFloatChild ) || status.contains( .checkChild ) {
-                if let floats = CAStyle.getChildren(layer, float: true) {
-                    for sub in floats {
-                        sub.nodeStyle?.setStatus( .noFloatSibling )
-                        sub.nodeStyle?.refresh()
-                    }
-                    CAStyle.updataFloatLayer(style, layer, floats)
-                }
-            }
-            
-            if status.contains( .checkChild ) {
-                if let subs = CAStyle.getChildren(layer, float: false) {
-                    for sub in subs {
-                        if style.hooks.contains( sub.hashValue ) {
-                            sub.nodeStyle?.setStatus( .noFloatSibling )
-                            sub.nodeStyle?.refresh()
-                        }
-                    }
-                }
-            }
-            if style.property["contentSize"] == "auto" {
-                CAStyle.updataContentSize(style)
-            }
-        }
-    }
-    
-    
-    // MARK: - Private Static
-    
-    private static func updataContentSize(_ style: Node.Style) {
-        
-        guard let layer = style.master as? CALayer else {
-            return
-        }
-        guard layer.sublayers != nil else {
-            return
-        }
-        let side = getContentSide( layer.sublayers! )
-        if layer.delegate is UIScrollView {
-            (layer.delegate as! UIScrollView).contentSize = CGSize(width: side.right, height: side.bottom)
-        }else{
-            CAStyle.checkTransaction(style)
-            
-            layer.frame.size = CGSize(width: side.right, height: side.bottom)
-            
-            CAStyle.commitTransaction()
-        }
-    }
-    
-    private static func updataFloatParent(_ style: Node.Style) {
-        guard let style = style as? CAStyle else {
-            return
-        }
-        guard let layer = style.layer else {
-            return
-        }
-        updataFloatLayer(style, layer)
-        if style.property["contentSize"] == "auto" {
-            updataContentSize(style)
-        }
-    }
-    
-    private static func updataFloatLayer(_ style: CAStyle, _ parent: CALayer, _ chilren: [CALayer]? = nil){
         guard let chilren = chilren ?? getChildren(parent, float: true) else {
             return
         }
         
-        var temp = [String: [CALayer]]()
+        var types = [String: [CALayer]]()
         for child in chilren {
-            if let type = child.nodeStyle?.property["float"] {
-                if temp[type] == nil {
-                    temp[type] = [CALayer]()
+            if child.isHidden {
+                continue
+            }
+            if let type = child.nodeStyle.property["float"] {
+                if types[type] == nil {
+                    types[type] = [CALayer]()
                 }
-               temp[type]!.append(child)
+               types[type]!.append(child)
             }
         }
         
-        let padding = style.padding
-        let outer = parent.frame.size
+        let box         = parent.frame.size
+        let box_padding = parent_style.padding
         
-        for (type, chilren) in temp {
-            for i in 0 ..< chilren.count {
-                let child = chilren[i]
-                guard let child_style = child.nodeStyle as? CAStyle else {
-                    continue
-                }
+        for (type, children) in types {
+            for i in 0 ..< children.count {
+                let child = children[i]
+                let child_style = child.cssStyle
                 if child_style.disable {
                     continue
                 }
                 
-                let block  = child.frame.size
-                let margin = child_style.margin
-                var point  = CGPoint.zero
+                var point        = CGPoint.zero
+                let block        = child.frame.size
+                let block_margin = child_style.margin
                 
                 if type == "center" {
-                    point.x = (outer.width - (block.width + margin.left + margin.right) )/2
-                    point.y = (outer.height - (block.height + margin.top + margin.bottom))/2
+                    point.x = (box.width - (block.width + block_margin.left + block_margin.right) )/2
+                    point.y = (box.height - (block.height + block_margin.top + block_margin.bottom))/2
                     
                 }else if i == 0 {
                     switch type {
                     case "top", "left", "auto":
-                        point.x = padding.left + margin.left
-                        point.y = padding.top + margin.top
+                        point.x = box_padding.left + block_margin.left
+                        point.y = box_padding.top + block_margin.top
                         
                     case "right":
-                        point.x = outer.width - block.width - (padding.right + margin.right)
-                        point.y = padding.top + margin.top
+                        point.x = box.width - block.width - (box_padding.right + block_margin.right)
+                        point.y = box_padding.top + block_margin.top
                     default:
                         continue
                     }
                 }else {
-                    let prev = chilren[i-1].frame
-                    let prev_margin = (chilren[i-1].nodeStyle as! CAStyle).margin
+                    let prev = children[i-1].frame
+                    let prev_margin = children[i-1].cssStyle.margin
                     switch type {
                     case "top":
-                        point.x = padding.left + margin.left
-                        point.y = prev.origin.y + prev.size.height + prev_margin.bottom + margin.top
+                        point.x = box_padding.left + block_margin.left
+                        point.y = prev.origin.y + prev.size.height + prev_margin.bottom + block_margin.top
                         
                     case "left":
-                        point.x = prev.origin.x + prev.size.width + prev_margin.right + margin.left
-                        point.y = prev.origin.y - prev_margin.top + margin.top
+                        point.x = prev.origin.x + prev.size.width + prev_margin.right + block_margin.left
+                        point.y = prev.origin.y - prev_margin.top + block_margin.top
                         
                     case "right":
-                        point.x = prev.origin.x - (prev_margin.left + margin.right + block.width)
-                        point.y = prev.origin.y - prev_margin.top + margin.top
+                        point.x = prev.origin.x - (prev_margin.left + block_margin.right + block.width)
+                        point.y = prev.origin.y - prev_margin.top + block_margin.top
                         
                     case "auto":
-                        point.x = prev.origin.x + prev.size.width + prev_margin.right + margin.left
-                        point.y = prev.origin.y - prev_margin.top + margin.top
-                        
-                        if point.x + block.width + margin.right > outer.width - padding.right - padding.left {
-                            point.x = padding.left + margin.left
+                        point.x = prev.origin.x + prev.size.width + prev_margin.right + block_margin.left
+                        point.y = prev.origin.y - prev_margin.top + block_margin.top
+                        if point.x + block.width + block_margin.right > box.width - box_padding.right - box_padding.left {
+                            point.x = box_padding.left + block_margin.left
                             let side = getContentSide( Array(chilren[0..<i]) )
-                            point.y = side.bottom + margin.top
+                            point.y = side.bottom + block_margin.top
                         }
                     default:
                         continue
                     }
                 }
-                CAStyle.checkTransaction(child_style)
-                child.frame.origin = point
-                CAStyle.commitTransaction()
+                if child.frame.origin != point {
+                    child_style.animateBegin()
+                    child.frame.origin = point
+                    child_style.animateCommit()
+                }
             }
         }
         
-        if let align = style.property["align"], let chilren = temp["auto"] {
-            if chilren.count > 0 {
-                
-                let side = getContentSide(chilren)
-                var x = outer.width - side.left - abs(side.right-side.left)
-                var y = outer.height - side.top - abs(side.bottom-side.top)
-                
-                switch align {
-                case "center":
-                    x = x/2
-                    y = y/2
-                case "centerLeft", "leftCenter":
-                    x = 0
-                    y = y/2
-                case "centerTop", "topCenter":
-                    x = x/2
-                    y = 0
-                case "centerRight", "rightCenter":
-                    y = y/2
-                case "centerBottom", "centerCenter":
-                    x = x/2
-                case "left", "topLeft", "leftTop":
-                    x = 0
-                    y = 0
-                case "right", "topRight", "rightTop":
-                    y = 0
-                case "bottom", "bottomLeft", "leftBottom":
-                    x = 0
-                case "bottomRight", "rightBottom":
-                    break
-                default:
-                    x = 0
-                    y = 0
-                }
-                for child in chilren {
-                    CAStyle.checkTransaction(child.nodeStyle)
-                    child.frame.origin.x += x
-                    child.frame.origin.y += y
-                    CAStyle.commitTransaction()
-                }
+        if let align = parent_style.property["align"], let children = types["auto"] {
+            updateAlign(parent_style, align, children)
+        }
+        
+    }
+    
+    static func updateAlign(_ style: CAStyle, _ align: String, _ children: [CALayer]) {
+        guard let box = style.layer?.frame.size else {
+            return
+        }
+        let side = getContentSide(children)
+        var x = box.width - side.left - abs(side.right - side.left)
+        var y = box.height - side.top - abs(side.bottom - side.top)
+        switch align {
+        case "center":
+            x = x/2
+            y = y/2
+        case "centerLeft", "leftCenter":
+            x = 0
+            y = y/2
+        case "centerTop", "topCenter":
+            x = x/2
+            y = 0
+        case "centerRight", "rightCenter":
+            y = y/2
+        case "centerBottom", "centerCenter":
+            x = x/2
+        case "right", "topRight", "rightTop":
+            y = 0
+        case "bottom", "bottomLeft", "leftBottom":
+            x = 0
+        case "bottomRight", "rightBottom":
+            break
+        case "left", "topLeft", "leftTop":
+            return
+        default:
+            return
+        }
+        if x != 0 || y != 0 {
+            for child in children {
+                child.cssStyle.animateBegin()
+                child.frame.origin.x += x
+                child.frame.origin.y += y
+                child.cssStyle.animateCommit()
             }
         }
     }
     
-    private static func updataBorderLayer(_ style: CAStyle) {
+    static func updataAutoSize(_ style: CAStyle) {
         guard let layer = style.layer else {
             return
         }
+        let auto = style.property["autoSize"]
         
+        if layer.sublayers == nil {
+            
+            if let text_layer = layer as? CATextLayer {
+                guard let content = text_layer.string as? String else {
+                    return
+                }
+                let limit_width  = auto == "height" ? text_layer.frame.width : .greatestFiniteMagnitude
+                let limit_height = auto == "width" ? text_layer.frame.height : .greatestFiniteMagnitude
+                
+                guard let text_size = String.size(content, font: text_layer.font as! CTFont, size: text_layer.fontSize, limitWidth:limit_width, limitHeight:limit_height) else {
+                    return
+                }
+                if layer.frame.size != text_size {
+                    style.animateBegin()
+                    if auto == "height" {
+                        layer.frame.size.height = text_size.height
+                    }else if auto == "width" {
+                        layer.frame.size.width = text_size.width
+                    }else {
+                        layer.frame.size = text_size
+                    }
+                    style.animateCommit()
+                }
+            }
+            return
+        }
+        
+        let side = getContentSide( layer.sublayers! )
+        let size = CGSize(width: side.right, height: side.bottom)
+        
+        #if os(iOS) || os(tvOS)
+            if let sc = layer.delegate as? UIScrollView {
+                if sc.contentSize != size {
+                    if auto == "height" {
+                        sc.contentSize.height = size.height
+                    }else if auto == "width" {
+                        sc.contentSize.width = size.width
+                    }else {
+                        sc.contentSize = size
+                    }
+                }
+                return
+            }
+        #endif
+        
+        if layer.frame.size != size {
+            style.animateBegin()
+            if auto == "height" {
+                layer.frame.size.height = size.height
+            }else if auto == "width" {
+                layer.frame.size.width = size.width
+            }else {
+                layer.frame.size = size
+            }
+            style.animateCommit()
+        }
+    }
+    
+    static func updataBorderLayer(_ style: CAStyle) {
+        guard let layer = style.layer else {
+            return
+        }
         var border = style.borderLayer
-        
         guard let data = style.border else {
             border?.removeFromSuperlayer()
             style.borderLayer = nil
@@ -250,7 +220,7 @@ extension CAStyle {
         }
         
         if border == nil {
-            border = CAShapeLayer()
+            border = CAShapeLayer(disable: true)
             border!.zPosition = -1
             layer.insertSublayer(border!, at: 0)
             style.borderLayer = border!
@@ -260,62 +230,62 @@ extension CAStyle {
                 sub.removeFromSuperlayer()
             }
         }
-        
         let size = layer.bounds.size
-        var border_path: UIBezierPath? = nil
-        var border_data: (CGFloat, String, CGColor)? = nil
+        var main_path: UIBezierPath? = nil
+        var main_data: (CGFloat, String, CGColor)? = nil
         for i in 0 ..< data.count {
             if let d = BorderData(data[i]) {
-                guard let p = BorderPath(position: i, size: size, width: d.0, style: d.1) else {
+                let p = BorderPath(position: i, size: size, width: d.0)
+                var b = border!
+                if main_path == nil {
+                    main_path = p
+                    main_data = d
+                }else if d.0 == main_data!.0 && d.1 == main_data!.1 && d.2 == main_data!.2 {
+                    main_path!.append(p)
                     continue
+                }else{
+                    b = CAShapeLayer(disable: true)
+                    b.path = p.cgPath
+                    border!.addSublayer(b)
                 }
-                if border_path == nil {
-                    border_path = p
-                    border_data = d
-                    continue
+                b.strokeColor = d.2
+                b.lineWidth = d.0
+                if d.1 == "dashed" {
+                    b.lineDashPattern = [NSNumber(value:Float(d.0))]
+                }else if let f = Float(d.1) {
+                    b.lineDashPattern = [NSNumber(value:f)]
                 }
-                
-                if d.0 == border_data?.0 && d.2 == border_data?.2  {
-                    border_path!.append(p)
-                    continue
-                }
-                
-                let g = CAShapeLayer()
-                g.strokeColor = d.2
-                g.lineWidth = d.0
-                g.path = p.cgPath
-                border?.addSublayer(g)
             }
         }
-        border!.path = border_path?.cgPath
-        border!.strokeColor = border_data?.2
-        border!.lineWidth = border_data?.0 ?? 0
+        border!.frame = layer.bounds
+        border!.path = main_path?.cgPath
     }
 
-    //
+    // MARK: -
     
-    private static func getChildren(_ parent: CALayer, float: Bool? = nil) -> [CALayer]? {
+    static func getChildren(_ parent: CALayer, float: Bool? = nil) -> [CALayer]? {
         guard parent.sublayers != nil else {
             return nil
         }
         var list = [CALayer]()
         for child in parent.sublayers! {
-            guard let style = child.nodeStyle as? CAStyle else {
+            if child.isHidden {
                 continue
             }
+            let style = child.cssStyle
             if style.disable {
                 continue
             }
             if float == nil {
                 list.append(child)
-            }else if style.isFloat == float {
+            }else if (style.property["float"] != nil) == float {
                 list.append(child)
             }
         }
         return list.isEmpty ? nil : list
     }
     
-    private static func getContentSide(_ contents: [CALayer]) -> (top:CGFloat, bottom:CGFloat, left:CGFloat, right:CGFloat) {
+    static func getContentSide(_ contents: [CALayer]) -> (top:CGFloat, bottom:CGFloat, left:CGFloat, right:CGFloat) {
         guard contents.count > 0 else {
             return (0, 0, 0, 0)
         }
@@ -324,10 +294,9 @@ extension CAStyle {
         for child in contents {
             var m = M
             let f = child.frame
-            if let style = child.nodeStyle as? CAStyle {
-                if style.isFloat {
-                    m = style.margin
-                }
+            let style = child.cssStyle
+            if style.property["float"] != nil {
+                m = style.margin
             }
             s.top    = min(f.origin.y - m.0, s.top)
             s.bottom = max(f.origin.y + f.height + m.2, s.bottom)
@@ -337,41 +306,22 @@ extension CAStyle {
         return s
     }
     
-    private static func getContentFrame(_ contents: [CALayer]) -> CGRect {
-        let s = getContentSide( contents )
-        return CGRect(x: s.left, y: s.top, width: s.right - s.left, height: s.bottom - s.top)
-    }
+    // MARK: -
 
-    private static func BorderPath(position: Int, size: CGSize, width: CGFloat, style: String, radius: CGFloat = 0) -> UIBezierPath? {
-        
+    private static func BorderPath(position: Int, size: CGSize, width: CGFloat, radius: CGFloat = 0) -> UIBezierPath {
         let w = width / 2
         let path = UIBezierPath()
-        switch style {
-        case "dashed":
-            path.setLineDash([width], count: 1, phase: 0)
-        case "hidden":
-            return nil
-        case "solid":
-            break
-        default:
-            break
-        }
-        //        var frame: CGRect
         switch position {
         case 0:
-            //            frame = CGRect(x: 0, y: 0, width: size.width, height: width)
             path.move(to: CGPoint(x:0, y: w))
             path.addLine(to: CGPoint(x: size.width, y: w))
         case 1:
-            //            frame = CGRect(x: size.width-width, y: 0, width: width, height: size.height)
             path.move(to: CGPoint(x:size.width-w, y: 0))
             path.addLine(to: CGPoint(x:size.width-w, y: size.height))
         case 2:
-            //            frame = CGRect(x: 0, y: size.height-width, width: size.width, height: width)
             path.move(to: CGPoint(x:0, y: size.height-w))
             path.addLine(to: CGPoint(x: size.width, y: size.height-w))
         default:
-            //            frame = CGRect(x: 0, y: 0, width: width, height: size.height)
             path.move(to: CGPoint(x:w, y: 0))
             path.addLine(to: CGPoint(x:w, y: size.height))
         }
@@ -389,6 +339,7 @@ extension CAStyle {
         let color = Color(list.last) ?? CGColor.black
         return (width, style, color)
     }
+ 
 }
 
 

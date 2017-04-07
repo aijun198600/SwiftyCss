@@ -4,130 +4,90 @@ import SwiftyBox
 
 extension Node {
     
-    public class Pseudo {
+    class Pseudo: CustomStringConvertible {
+    
+        let name: String
+        let params: String?
+        let description: String
         
-        // MARK: - Public Static
-        
-        public typealias Parser = (String?, SelectRule, NodeProtocol) -> [NodeProtocol]?
-        
-        // MARK: - Static
-        
-        static var parsers:[String: Parser] = [
-            
-            "nth-child" : nthChild,
-            
-            "first-child" : {
-                return nthChild(index: 1, rule: $1, node: $2)
-            },
-            
-            "last-child" : {
-                return nthChild(index: -1, rule: $1, node: $2)
-            },
-            
-            "root" : {
-                var root = $2
-                while root.parentNode != nil {
-                    root = root.parentNode!
-                }
-                return [root]
-            },
-            
-            "empty" : {
-                return $2.childNodes.isEmpty ? [$2] : nil
-            },
-            
-            "not"  : {
-                return $0 != nil && Node.Select($0!).query($2).isEmpty ? [$2] : nil
-            }
-        ]
-        
-        static func parse(rule: SelectRule, node: NodeProtocol) -> [NodeProtocol]? {
-            guard let name = rule.pseudo else {
-                return nil
-            }
-            if parsers[name] != nil {
-                return parsers[name]!(rule.pseudoParam, rule, node)
-            }
-            return nil
+        init(name: String, params: String?) {
+            self.name        = name
+            self.params      = params
+            self.description = ":" + name + (params==nil ? "" : "("+params!+")")
         }
         
-        static func nthChild(_ param: String?, _ rule: SelectRule, _ node: NodeProtocol) -> [NodeProtocol]? {
-            guard let param = param, let parent = node.parentNode else {
-                return nil
-            }
-            
-            var n: Int = 0
-            var step: Int = 0
-            var index: Int = 0
-            
-            if let m = NTH_LEXER.match(param) {
-                if !m[1]!.isEmpty {
-                    n = 2
-                    step = 1
-                }else if !m[2]!.isEmpty {
-                    n = 2
-                }else if !m[3]!.isEmpty {
-                    n = Int(m[3]!)!
-                    step = Int(m[4]!)!
-                }else if !m[5]!.isEmpty {
-                    n = Int(m[5]!)!
-                }else if !m[6]!.isEmpty{
-                    index = Int(m[6]!)!
+        final func run(with node: NodeProtocol) -> Bool {
+            switch self.name {
+            case "nth-child":
+                guard params != nil else {
+                    return false
                 }
-            }else{
-                return nil
+                return Pseudo._nthChild(param: params!, node: node)
+                
+            case "first-child":
+                guard let sibling = node.parentNode?.childNodes else {
+                    return false
+                }
+                return node.hash == sibling[0].hash
+                
+            case "last-child":
+                guard let sibling = node.parentNode?.childNodes else {
+                    return false
+                }
+                return node.hash == sibling.last?.hash
+                
+            case "exmpty":
+                return node.childNodes.isEmpty
+                
+            case "not":
+                return params != nil && Node.Select(params!).check(node) == false
+                
+            default:
+                return false
             }
-            
-            if index != 0 {
-                return nthChild(index:index, rule: rule, node: node)
+        }
+    
+        // MARK: -
+        
+        private static let _nth_child_lexer = Re("^(?:(-\\d+)n([+\\-]\\d+)|(-?\\d+)n|(-?\\d+))$")
+        
+        private static func _nthChild(param: String, node: NodeProtocol) -> Bool {
+            guard let sibling = node.parentNode?.childNodes else {
+                return false
             }
-            
-            if n != 0 || step != 0 {
-                var i = 0
-                let count = parent.childNodes.count
-                var res = [NodeProtocol]()
-                while true {
-                    index = n * i + step
-                    if index < 0 {
-                        index = count + index
+            var index = -1
+            var count = sibling.count
+            for i in 0 ..< sibling.count {
+                if sibling[i].nodeStyle.disable {
+                    count -= 1
+                    continue
+                }
+                index += 1
+                if node.hash == sibling[i].hash {
+                    if param == "odd" {
+                        return index % 2 == 0
                     }
-                    i += 1
-                    if index <= count {
-                        if let ref = nthChild(index: index, rule: rule, node: node){
-                            res += ref
+                    if param == "even" {
+                        return index % 2 != 0
+                    }
+                    guard let m = _nth_child_lexer.match(param) else {
+                        return false
+                    }
+                    if !m[4]!.isEmpty {
+                        if let num = Int(m[4]!) {
+                            if (num < 0 ? count + num : num - 1) == index {
+                                return true
+                            }
                         }
-                        continue
+                        return false
                     }
-                    break
+                    let n   = Int( m[1]! + m[3]! ) ?? 0
+                    let off = m[2]!.isEmpty ? 0 : (Int( m[2]! ) ?? 0)
+                    return (index - off) % n == 0
                 }
-                return res.isEmpty ? nil : res
             }
-            return nil
+            return false
         }
-        
-        static func nthChild(index: Int, rule: SelectRule, node: NodeProtocol) -> [NodeProtocol]? {
-            guard let parent = node.parentNode else {
-                return nil
-            }
-            let len = parent.childNodes.count
-            let index = index < 0 ? len + index : index - 1
-            guard index < len else {
-                return nil
-            }
-            let child = parent.childNodes[index]
-            if child.isEqual(node) {
-                return [node]
-            }
-            if rule.match(child, nonPseudo: true) != nil {
-                return [child]
-            }
-            return nil
-        }
-        
-        
-        // MARK: - Private Static
-        
-        private static let NTH_LEXER = Re("^(?:(odd)|(event)|(-\\d+)n([+\\-]\\d+)|(-?\\d+)n|(-?\\d+))$")
         
     }
 

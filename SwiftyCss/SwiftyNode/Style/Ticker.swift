@@ -6,44 +6,23 @@ extension Node {
     
     public class Ticker {
         
-        // MARK: - Public Static
+        public static var queue: DispatchQueue? = nil
+        
+        public static var async: Bool {
+            get { return self.queue != nil }
+            set {
+                if newValue {
+                    queue = DispatchQueue(label: "SwiftyCss.CAStyle", attributes: .concurrent)
+                }else{
+                    queue = nil
+                }
+            }
+        }
+        
         
         public typealias CallBack = (Style) -> Void
         
-        public static func add(style: Style, _ callback: CallBack? = nil) {
-            for i in 0 ..< queue.count {
-                if queue[i].target?.hashValue == style.hashValue {
-                    if callback != nil {
-                        queue[i].callback = callback
-                    }
-                    return
-                }
-            }
-            queue.append(Data(style: style, callback: callback))
-            if runing == false && queue.isEmpty == false {
-                runing = true
-                DispatchQueue.main.asyncAfter(deadline: .now()){ checkQueue() }
-            }
-        }
-        
-        public static func remove(style: Style, keepCallback: Bool = false) {
-            var i = 0
-            while i < queue.count {
-                if queue[i].target?.hashValue == style.hashValue {
-                    if keepCallback == false || queue[i].callback == nil {
-                        queue.remove(at: i)
-                        continue
-                    }else{
-                        queue[i].active = false
-                    }
-                }
-                i += 1
-            }
-        }
-        
-        // MARK: - Private Static
-        
-        private class Data {
+        private class _Data {
             weak var target: Style?
             var callback: CallBack?
             var active = true
@@ -54,22 +33,74 @@ extension Node {
             }
         }
         
-        private static var queue = [Data]()
-        private static var runing = false
+        // MARK: -
         
-        private static func checkQueue(){
-            while !queue.isEmpty {
-                let data = queue.removeLast()
+        private static var _cache = [Int: _Data]()
+        private static var _runing = false
+        private static var _id = 0
+        
+        public static func add(execute work: @escaping @convention(block) () -> Swift.Void){
+            if queue != nil {
+                queue!.async(execute: work)
+            }else{
+                DispatchQueue.main.async(execute: work)
+            }
+        }
+        
+        public static func add(style: Style, _ callback: CallBack? = nil) {
+            if _cache[ style.hash ] != nil {
+                if callback != nil {
+                    _cache[style.hash]!.callback = callback
+                }
+                return
+            }
+            _cache[ style.hash ] = _Data(style: style, callback: callback)
+            if _runing == false && _cache.isEmpty == false {
+                _runing = true
+                if queue != nil {
+                    queue!.asyncAfter(deadline: .now()) {
+                        DispatchQueue.main.asyncAfter(deadline: .now()){
+                            _checkQueue()
+                        }
+                    }
+                }else{
+                    DispatchQueue.main.asyncAfter(deadline: .now()){
+                        _checkQueue()
+                    }
+                }
+            }
+        }
+        
+        public static func remove(style: Style, keepCallback: Bool = false) {
+            if _cache[ style.hash ] != nil {
+                if keepCallback == false || _cache[style.hash]?.callback == nil {
+                    _cache[style.hash] = nil
+                }else{
+                    _cache[style.hash]?.active = false
+                }
+            }
+        }
+        
+        private static func _checkQueue(){
+            let temp = _cache
+            _runing = false
+            _cache.removeAll()
+            
+            for (_, data) in temp {
                 if data.target != nil {
                     if data.active {
-                        _ = data.target!.updata(mark: "ticker")
+                        #if DEBUG
+                            Node.debug.log(tag: "ticker", queue == nil ? "sync" : "async", _id, data.target?.status, data.target)
+                        #endif
+                        data.target!.listenStatus(mark: "ticker\(_id)")
                     }
                     if data.callback != nil {
                         data.callback!( data.target! )
                     }
                 }
+                
             }
-            runing = false
+            _id += 1
         }
         
     }

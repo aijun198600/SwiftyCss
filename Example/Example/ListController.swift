@@ -10,81 +10,45 @@ import UIKit
 import SwiftyCss
 import SwiftyNode
 
-class ViewController: CssViewController {
-
-    override func viewDidLoad() {
+class ListViewController: UITableViewController {
+    
+    let examples: [(title: String, clas: UIViewController.Type )] = [
+        ("Basic", TestBasic.self),
+        ("Style", TestStyle.self),
+        ("Layout", TestLayout.self),
+        ("Selector", TestSelector.self),
+        ("Media", TestMedia.self),
+        ("Text", TestBasic.self)
+    ]
+    
+    override func loadView() {
+        super.loadView()
+        self.title = "Examples"
+        self.view.backgroundColor = .white
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        Css.load(
-            "#list-view {width:100%; height:100%; content-size:auto;}" +
-            ".list-item {width:100%; height:80; float:top; background:#f00; border-bottom:1 solid #aaa;}" +
-            ".list-title {font-size:30; color:#333; height:60; width:100%;}"
-        )
-        
-        super.viewDidLoad()
-        
-        self.view.css(creates: [
-            "UIScrollView#list-view",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            "   CALayer.list-item",
-            "       CATextLayer.list-title[style=content:Basic]",
-            ""
-        ])
-        
-//        self.view.css(id: "root-view")
-//        self.view.css(create: "#center-block")
+        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SwiftyCss.Examples")
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        
-//        let t2 = CACurrentMediaTime()
-//        var sele2 = Node.Select(".list-title")
-//        for _ in 0 ... 10000 {
-//            _ = sele2.query(self.view)
-//        }
-//        let dt2 = CACurrentMediaTime() - t2
-//        print("-----2>", dt2)
-        
-        
-//        Css.debugPrint(self.view, deep: true)
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let data =  self.examples[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SwiftyCss.Examples", for: indexPath)
+        cell.textLabel?.text = data.title
+        return cell
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
+    
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return examples.count
     }
-
-
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let data = self.examples[indexPath.row]
+        let view = data.clas.init()
+        if view.title == nil {
+            view.title = "Test "+data.title
+        }
+        self.navigationController?.pushViewController(view, animated: true)
+    }
+    
 }
+
 

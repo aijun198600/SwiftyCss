@@ -2,8 +2,10 @@
 import Foundation
 
 public class Re {
-	
-	static private var cache = [String: NSRegularExpression]()
+    private static let symbol  = Re("([()\\[\\]?{}.*$^!\\+]|^\\|$)")
+    private static let pair    = ["(":")", "[":"]", "{": "}", "\"":"\"", "\'": "\'"]
+    private static let pairRe  = Re("(\\\\*)([()\"'{}\\[\\]])")
+	private static var cache   = [String: NSRegularExpression]()
 	
 	public enum ExplodeOption {
 		case keepSeparator
@@ -11,6 +13,8 @@ public class Re {
 		case keepSeparatorFront
 		case ignoreSeparator
 	}
+    
+    // MARK: -
 	
     public class Result: CustomStringConvertible {
         public let values:[String]
@@ -35,7 +39,7 @@ public class Re {
         }
 	}
 	
-	// MARK:
+	// MARK: -
 	
 	let regex    : NSRegularExpression
 	var flags    : Set<Character>
@@ -72,16 +76,20 @@ public class Re {
 	}
 	
 	public final func test(_ input: String, offset:Int = 0) -> Bool {
-		let len = input.characters.count
-		if self.regex.firstMatch(in: input, range: NSMakeRange(offset, len - offset)) != nil {
+        guard let r = Re.nsRange(offset: offset, with: input) else {
+            return false
+        }
+		if self.regex.firstMatch(in: input, range: r) != nil {
 			return true
 		}
 		return false
 	}
 	
 	public final func replace(_ input:String, _ template:String, offset:Int = 0) -> String{
-		let len = input.characters.count
-		return self.regex.stringByReplacingMatches(in : input, range : NSMakeRange(offset, len - offset), withTemplate : template)
+        guard let r = Re.nsRange(offset: offset, with: input) else {
+            return input
+        }
+		return self.regex.stringByReplacingMatches(in: input, range: r, withTemplate: template)
 	}
     
     public final func replace(_ input:String, offset: Int = 0, _ template:@escaping (Re.Result) -> String ) -> String {
@@ -103,16 +111,11 @@ public class Re {
     }
 	
 	public final func match(_ input:String, offset:Int = 0, nonGlobal:Bool = false) -> Result?{
-		let len = input.characters.count
-		
-		guard offset < len else {
-			return nil
-		}
-		
-		let range = NSMakeRange(offset, len - offset)
-		
+        guard let r = Re.nsRange(offset: offset, with: input) else {
+            return nil
+        }
 		if nonGlobal == false && self.flags.contains("g") {
-			let matchs = self.regex.matches(in: input, range:range)
+			let matchs = self.regex.matches(in: input, range: r)
 			if matchs.count > 0 {
 				var res = [String]()
                 var last = -1
@@ -120,13 +123,13 @@ public class Re {
                     if m.range.length > 0 && m.range.location + m.range.length - 1 > last {
                         last = m.range.location + m.range.length - 1
                     }
-					res.append( input.slice(start: m.range.location, end: m.range.location + m.range.length) )
+                    res.append( input.slice(with: m.range) )
 				}
-				return Result(index: matchs[0].range.location, lastIndex: last, values: res)
+				return Result(index: String.distance(input, utf16: matchs[0].range.location)!, lastIndex: String.distance(input, utf16: last)!, values: res)
 			}
 
 		}else{
-			if let match = self.regex.firstMatch(in: input, range: range) {
+			if let match = self.regex.firstMatch(in: input, range: r) {
 				var res = [String]()
                 var last = -1
 				for i in 0 ..< match.numberOfRanges {
@@ -134,9 +137,9 @@ public class Re {
                     if r.length > 0 && r.location + r.length - 1 > last {
                         last = r.location + r.length - 1
                     }
-					res.append( input.slice(start: r.location, end: r.location + r.length) )
+					res.append( input.slice(with: r) )
 				}
-                return Result(index: match.range.location, lastIndex: last, values: res)
+                return Result(index: String.distance(input, utf16: match.range.location)!, lastIndex: String.distance(input, utf16: last)!, values: res)
 			}
 		}
 		return nil
@@ -144,7 +147,7 @@ public class Re {
 	
 	public final func exec(_ input:String) -> Result? {
 		if let res = self.match(input, offset: self.lastIndex, nonGlobal: true) {
-			self.lastIndex = res.index + res.values[0].characters.count
+			self.lastIndex = res.lastIndex
 			return res
 		}
 		return nil
@@ -155,56 +158,51 @@ public class Re {
 	}
 	
     public final func explode(_ input:String, offset:Int = 0, trim:CharacterSet? = nil, option:ExplodeOption = .keepSeparator) -> [String] {
-		
-		let len = input.characters.count
-		let matchs = self.regex.matches(in: input, range: NSMakeRange(offset, len - offset))
+        guard let r = Re.nsRange(offset: offset, with: input) else {
+            return [input]
+        }
+		let matchs = self.regex.matches(in: input, range: r)
 		
 		if matchs.count > 0 {
-
-			var res   = [String]()
-			var offset = 0
+            
+            let len = input.utf16.count
+			var res = [String]()
+			var i = 0
 			
 			for m in matchs {
 				let r = m.range
-				if offset != r.location {
-                    
-					res.append( input.slice(start: offset, end: r.location, trim: trim) )
+				if i != r.location {
+                    res.append( input.slice(with: NSMakeRange(i, r.location-i), trim: trim)  )
 				}
 				switch option {
 				case .keepSeparator:
-					res.append( input.slice(start: r.location, end: r.location + r.length, trim: trim) )
-					offset = r.location + r.length
+					res.append( input.slice(with: r, trim: trim) )
+					i = r.location + r.length
 					
 				case .ignoreSeparator:
-					offset = r.location + r.length
+					i = r.location + r.length
 					
 				case .keepSeparatorBack:
 					if res.count > 0 {
-						res[res.count - 1] += input.slice(start: r.location, end: r.location + r.length, trim: trim)
+						res[res.count - 1] += input.slice(with: r, trim: trim)
 					}else{
-						res.append( input.slice(start: r.location, end: r.location + r.length, trim: trim) )
+						res.append( input.slice(with: r, trim: trim) )
 					}
-					offset = r.location + r.length
+					i = r.location + r.length
 					
 				case .keepSeparatorFront:
-					offset = r.location
+					i = r.location
 				}
 			}
-			if offset < len {
-				res.append( input.slice(start: offset, trim: trim) )
+			if i < len {
+				res.append( input.slice(with: NSMakeRange(i, len-i), trim: trim) )
 			}
 			return res.filter({ $0.characters.count > 0 })
 		}
 		return [input]
 	}
 	
-}
-
-public extension Re {
-    
-    private static let symbol  = Re("([()\\[\\]?{}.*$^!\\+]|^\\|$)")
-    private static let pair    = ["(":")", "[":"]", "{": "}", "\"":"\"", "\'": "\'"]
-    private static let pairRe  = Re("(\\\\*)([()\"'{}\\[\\]])")
+    // MARK: -
     
     public static func trim(_ string:String, pattern:String? = nil) -> String {
         if var pattern = pattern {
@@ -289,6 +287,18 @@ public extension Re {
         return res.filter({ $0.characters.count > 0 })
     }
     
+    public static func nsRange(offset: Int, with str: String) -> NSRange? {
+        let end = str.utf16.count
+        if offset > 0 {
+            if let start = String.utf16Distance(str, distance: offset) {
+                if start < end {
+                    return NSMakeRange(start, end - start)
+                }
+            }
+            return nil
+        }
+        return NSMakeRange(0, end)
+    }
+
+    
 }
-
-

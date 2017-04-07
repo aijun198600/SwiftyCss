@@ -4,7 +4,7 @@ import SwiftyBox
 
 public protocol NodeProtocol: NSObjectProtocol {
     
-    var nodeStyle: Node.Style? { get }
+    var nodeStyle: Node.Style { get }
     
     var childNodes: [NodeProtocol] {get}
     
@@ -20,68 +20,56 @@ public protocol NodeProtocol: NSObjectProtocol {
     
 }
 
-open class Node {
+public class Node {
     
-    public static var debug = false
-
-    public static func index(of node: NodeProtocol, parent: NodeProtocol? = nil) -> Int? {
-        let parent = parent ?? node.parentNode
-        if parent != nil {
-            for (i, n) in parent!.childNodes.enumerated() {
-                if n.isEqual( node ) {
-                    return i
-                }
-            }
-        }
-        return nil
-    }
-
-    public static func registe(pseudo: String, parser: @escaping Node.Pseudo.Parser) {
-        Node.Pseudo.parsers[pseudo] = parser
-    }
+    public static let debug = Debug(tags: [
+        "refresh" : "💣 SwiftyNode Refresh (%ms):\n    node: % 🚥 %\n    matched: %[]\n",
+        "status"  : "🛎 SwiftyNode Status (%): % 🚥 %\n",
+        "create"  : "💰 SwiftyNode Create (%ms):\n    %[]\n",
+        "load"    : "🗄 SwiftyNode StyleSheet Load (%ms):\n    %\n",
+        "ticker"  : "⏰ SwiftyNode Ticker % (%): % 🚥 %\n",
+        "at-rule" : "@ SwiftyNode AtRule: (%) => %"
+    ])
     
-    public static func registe(atRule: String, parser: @escaping Node.AtRule.Parser) {
+    
+    public static func registe(atRule: String, parser: @escaping Node.AtRuleParser) {
         Node.AtRule.parsers[atRule] = parser
     }
     
-    public static func query(_ node: NodeProtocol, _ text: String) -> [NodeProtocol] {
+    public static func query(_ node: NodeProtocol, _ text: String) -> [NodeProtocol]? {
         var res = [NodeProtocol]()
         for str in Re.lexer(code: text, separator: ",") {
-            res += Node.Select(str).query( node )
+            if let ref = Node.Select(str).query( node ) {
+                res += ref
+            }
         }
-        return res
+        return res.isEmpty ? nil : res
     }
 
     public static func check(_ node: NodeProtocol, _ text: String) -> Bool{
         return Node.Select(text).check(node)
     }
     
+    
+    
+    public static func describing(_ nodes: [NodeProtocol], deep: Bool = false) -> String {
+        var text = ""
+        for i in 0 ..< nodes.count {
+            if i != 0 {
+                text += "\n"
+            }
+            text += describing(nodes[i], deep: deep)
+        }
+        return text
+    }
+    
+    
     public static func describing(_ node: NodeProtocol, deep: Bool = false) -> String {
-        var text = node.nodeStyle != nil ? describing(node.nodeStyle!) : "<\(String(describing: type(of:node)))>"
+        var text = node.nodeStyle.description
         if deep && node.childNodes.count > 0 {
             for n in node.childNodes {
                 text += "\n    " + describing(n, deep:deep).replacingOccurrences(of: "\n", with: "\n    ")
             }
-            text += "\n"
-        }
-        return text
-    }
-
-    public static func describing(_ style: Style) -> String {
-        var text = style.id.isEmpty ? "" : " id=\"\(style.id)\""
-        text += style.clas.isEmpty ? "" : " class=\"\(style.clas.joined(separator: " "))\""
-        var temp = ""
-        for (k, v) in style.property {
-            temp += k + ":" + v + ";"
-        }
-        if !temp.isEmpty {
-            text += " style=\"\(temp[0, -1])\""
-        }
-        let type = style.master == nil ? style.tag : String(describing: type(of:style.master!))
-        if type == style.tag{
-            text = "<\(type)\(text)>"
-        } else {
-            text = "<\(type):\(style.tag)\(text)>"
         }
         return text
     }

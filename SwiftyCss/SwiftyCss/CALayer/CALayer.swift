@@ -1,32 +1,30 @@
 
-import UIKit
+import QuartzCore
 import SwiftyNode
 import SwiftyBox
 
-private var nonActions:[String : CAAction] = ["position" : NSNull(), "bounds" : NSNull(), "path" : NSNull(), "opacity":NSNull(), "origin":NSNull()]
+extension Css {
+    static var nonActions:[String : CAAction] = ["position" : NSNull(), "bounds" : NSNull(), "path" : NSNull(), "opacity":NSNull(), "origin":NSNull()]
+}
 
 extension CALayer: NodeProtocol {
-
-    // MARK: - Protocol
     
-    open var nodeStyle: Node.Style? {
-        if let style = self.value(forKey: "_cssStyle_") {
-            return style as? Node.Style
-        }
-        let style = CAStyle(layer: self)
-        self.setValue(style, forKey: "_cssStyle_")
-        return style
+    public final var nodeStyle: Node.Style {
+        return CAStyle.make(self)
+    }
+    public final var cssStyle: CAStyle {
+        return CAStyle.make(self)
     }
     
     open func getAttribute(_ key: String) -> Any? {
-        return self.nodeStyle?.getProperty(key)
+        return self.cssStyle.getValue(attribute: key)
     }
     
     open func setAttribute(_ key: String, value: Any?) {
         if key == "action" {
-            self.actions = Bool(string: value) ? nil : nonActions
+            self.actions = Bool(string: value) ? nil : Css.nonActions
         }else if value is String {
-            self.nodeStyle?.set(key: key, value: value as! String)
+            self.nodeStyle.set(key: key, value: value as! String)
         }
     }
 
@@ -57,25 +55,22 @@ extension CALayer: NodeProtocol {
         }
     }
 
-    // MARK: - Public
+    // MARK: -
     
     public convenience init(tag: String? = nil, id: String? = nil, class clas: String? = nil, style: String? = nil, action: Bool? = nil, disable: Bool? = nil, lazy: Bool? = nil) {
         self.init()
         self.css(tag: tag, id: id, class: clas, style: style, action: action, disable: disable, lazy: lazy)
     }
     
-    public func css(tag: String? = nil, id: String? = nil, class clas: String? = nil, style text: String? = nil, action: Bool? = nil, disable: Bool? = nil, lazy: Bool? = nil) {
-        guard let style = self.nodeStyle else {
-            return
-        }
-        var refresh = false
-        refresh = style.lazySet(key: "tag", value: tag) || refresh
+    public final func css(tag: String? = nil, id: String? = nil, class clas: String? = nil, style text: String? = nil, action: Bool? = nil, disable: Bool? = nil, lazy: Bool? = nil) {
+        let style = self.nodeStyle
+        var refresh = style.lazySet(key: "tag", value: tag)
         refresh = style.lazySet(key: "id", value: id) || refresh
         refresh = style.lazySet(key: "class", value: clas) || refresh
         refresh = style.lazySet(key: "style", value: text) || refresh
         
         if action != nil {
-            self.actions = action! ? nil  : nonActions
+            self.actions = action! ? nil  : Css.nonActions
         }
         if disable != nil {
             style.disable = disable!
@@ -88,58 +83,50 @@ extension CALayer: NodeProtocol {
         }
     }
     
-    public func css(addClass clas: String) {
-        guard let style = self.nodeStyle else {
-            return
-        }
-        if style.lazySet(key: "addClass", value: clas) {
-            style.refresh()
+    public final func css(addClass clas: String) {
+        if self.nodeStyle.lazySet(key: "addClass", value: clas) {
+            self.nodeStyle.refresh()
         }
     }
     
-    public func css(removeClass clas: String) {
-        guard let style = self.nodeStyle else {
-            return
-        }
-        if style.lazySet(key: "removeClass", value: clas) {
-            style.refresh()
+    public final func css(removeClass clas: String) {
+        if self.nodeStyle.lazySet(key: "removeClass", value: clas) {
+            self.nodeStyle.refresh()
         }
     }
     
-    public func css(refresh signal: Node.Status? = nil) {
-        self.nodeStyle?.refresh()
+    public final func css(value name: String) -> Any? {
+        return self.cssStyle.getValue(attribute: name)
     }
     
-    public func css(value name: String) -> Any? {
-        return self.nodeStyle?.getProperty(name)
+    public final func css(property name: String) -> String? {
+        return self.nodeStyle.getProperty(name)
     }
     
-    public func css(property name: String) -> String? {
-        return self.nodeStyle?.property[name]
+    public final func css(query text: String) -> [CALayer]? {
+        if let nodes = Node.query(self, text) {
+            return nodes as? [CALayer]
+        }
+        return nil
     }
     
-    public func css(create text: String) {
-        if let nodes = Node.create(jade: text, default: "CALayer") {
-            for n in nodes {
+    public final func css(insert: String...) {
+        let nodes: [NodeProtocol]?
+        if insert.count == 1 {
+            nodes = Node.create(text: insert[0], default: "CALayer")
+        }else {
+            nodes = Node.create(lines: insert, default: "CALayer")
+        }
+        if nodes != nil {
+            for n in nodes! {
                 self.addChild( n )
             }
         }
     }
     
-    public func css(creates list: [String]) {
-        if let nodes = Node.create(jade: list, default: "CALayer") {
-            for n in nodes {
-                self.addChild( n )
-            }
-        }
-    }
-    
-    public func css(query text: String) -> [CALayer]? {
-        let nodes = Node.query(self, text)
-        if nodes.isEmpty {
-            return nil
-        }
-        return nodes as? [CALayer]
+    public final func cssRefresh() {
+        Css.styleSheet.refrehs()
+        self.nodeStyle.refresh()
     }
 
 }

@@ -5,11 +5,11 @@ import SwiftyBox
 
 extension Node {
     
-    class Expression {
+    public class Expression: CustomStringConvertible {
         
-        private static let lexer = Re("\\(|(?<=[\\w)]) *([&|]{2}|[<>=!]=?|[~|^$*]=|[+\\-*/(),])")
+        private static let _lexer = Re("\\(|(?<=[\\w)]) *([&|]{2}|[<>=!]=?|[~|^$*]=|[+\\-*/(),])")
         
-        private static let operatorPriority = [
+        private static let _operators = [
             ")" :-1, "," : -1,
             "*" :0, "/" :0,
             "+" :1, "-" :1,
@@ -20,18 +20,19 @@ extension Node {
         
         // MARK: -
         
-        let exps: [String]
+        public let exps: [String]
+        public let description: String
         
-        init(_ text: String){
-            self.exps = Expression.lexer.explode(text, trim: .whitespacesAndNewlines)
-//            self.description = exps.joined()
+        public init(_ text: String){
+            self.exps = Expression._lexer.explode(text, trim: .whitespacesAndNewlines)
+            self.description = exps.joined()
         }
         
-        subscript (index: Int) -> String? {
+        public final subscript (index: Int) -> String? {
             return index >= 0 && index < self.exps.count ? self.exps[index] : nil
         }
         
-        func run(with node: NodeProtocol) -> Any? {
+        public final func run(with node: NodeProtocol) -> Any? {
             var offset = 0
             return self._parseExps(&offset, node)
         }
@@ -39,7 +40,7 @@ extension Node {
         
         // MARK: - Private
         
-        private func _parseExps(_ i: inout Int, _ node: NodeProtocol, priority: Int = 3) -> Any? {
+        private final func _parseExps(_ i: inout Int, _ node: NodeProtocol, priority: Int = 3) -> Any? {
             
             var res = priority == 0 ? self._parseValue(&i, node) : self._parseExps(&i, node, priority: priority - 1)
             if res == nil {
@@ -47,12 +48,12 @@ extension Node {
             }
             while let oper = self[i + 1] {
                 
-                if Expression.operatorPriority[oper] == nil {
+                if Expression._operators[oper] == nil {
                     assertionFailure("[SwiftNode Expression Error] nonsupport operator: \(self.exps) At \(i)")
                     return nil
                 }
                 
-                if Expression.operatorPriority[oper] != priority {
+                if Expression._operators[oper] != priority {
                     break
                 }
                 if oper == "&&" && !Bool(res) {
@@ -73,7 +74,7 @@ extension Node {
             return res
         }
         
-        private func _parseValue(_ i: inout Int, _ node: NodeProtocol) -> Any? {
+        private final func _parseValue(_ i: inout Int, _ node: NodeProtocol) -> Any? {
             guard let exp = self[i] else {
                 assertionFailure("[SwiftNode Expression Error] parse failure : \(self.exps) At \(i)")
                 return false
@@ -94,7 +95,7 @@ extension Node {
             }
         }
         
-        private func _parseGoupe(_ i: inout Int, _ node: NodeProtocol) -> Any? {
+        private final func _parseGoupe(_ i: inout Int, _ node: NodeProtocol) -> Any? {
             i += 1
             let ref = self._parseExps(&i, node)
             i += 1
@@ -105,7 +106,7 @@ extension Node {
             return ref
         }
         
-        private func _parseMethod(_ i: inout Int, _ node: NodeProtocol, name: String, params:[Any]) -> Any? {
+        private final func _parseMethod(_ i: inout Int, _ node: NodeProtocol, name: String, params:[Any]) -> Any? {
             var ref: CGFloat? = nil
             switch name {
             case "max":
@@ -127,7 +128,7 @@ extension Node {
             return ref
         }
         
-        private func _parseParams(_ i: inout Int, _ node: NodeProtocol) -> [Any]? {
+        private final func _parseParams(_ i: inout Int, _ node: NodeProtocol) -> [Any]? {
             guard self[i + 1] == "(" else {
                 return nil
             }
@@ -153,7 +154,7 @@ extension Node {
             return params
         }
         
-        private func _parseOperation (_ left: Any?, _ oper: String, _ right: Any?) -> Any? {
+        private final func _parseOperation (_ left: Any?, _ oper: String, _ right: Any?) -> Any? {
             if left == nil || right == nil {
                 return nil
             }

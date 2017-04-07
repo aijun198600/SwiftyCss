@@ -9,7 +9,6 @@ public class Path {
     public static let cache     = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first!;
     public static let tmp       = NSTemporaryDirectory()
 
-    
     public static func isExist(_ path: String) -> Bool {
         return FileManager.default.fileExists(atPath: Path.resolve(path))
     }
@@ -88,14 +87,12 @@ public class Path {
         try? FileManager.default.removeItem(atPath: resolve(path))
     }
     
-    
     public static func mkDir(_ path: String) throws {
         let path = Path.resolve(path)
         if !isDir( path ) {
             try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil)
         }
     }
-    
     
     public static func ls(_ path: String, all: Bool = false) -> [String]? {
         let re = Re("\\[([^\\]]+)\\]|\\{([^}]+)\\}|[*?]")

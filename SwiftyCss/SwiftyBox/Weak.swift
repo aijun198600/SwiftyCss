@@ -1,17 +1,21 @@
 
 import Foundation
 
-public struct Weak <Element: AnyObject> {
-    
+public class Weak <Element: AnyObject>: CustomStringConvertible {
+
     public weak var value : Element?
     
     public init(_ value: Element) {
         self.value = value
     }
+    
+    public final var description: String {
+        return "Weak(" + (self.value != nil ? String(describing: self.value!) : "nil") + ")"
+    }
+
 }
 
-
-public struct WeakArray <Element: AnyObject> {
+public class WeakArray <Element: AnyObject> {
     
     public var list: [Weak<Element>]
     
@@ -23,15 +27,6 @@ public struct WeakArray <Element: AnyObject> {
         return list.count
     }
     
-    public mutating func append(_ element: Element) {
-        list.append( Weak( element ) )
-    }
-    
-    public mutating func remove(at: Int) -> Element? {
-        let elm = list.remove(at: at < 0 ? list.count + at : at)
-        return elm.value
-    }
-    
     public subscript (index: Int) -> Element? {
         if index < list.count {
             return list[index].value
@@ -39,9 +34,18 @@ public struct WeakArray <Element: AnyObject> {
         return nil
     }
     
+    public final func append(_ element: Element) {
+        list.append( Weak( element ) )
+    }
+    
+    public final func remove(at: Int) -> Element? {
+        let elm = list.remove(at: at < 0 ? list.count + at : at)
+        return elm.value
+    }
+    
 }
 
-public struct WeakDict <Key: Hashable, Element: AnyObject> {
+public class WeakDict <Key: Hashable, Element: AnyObject> {
     
     public var dict: [Key: Weak<Element>]
     

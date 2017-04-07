@@ -21,14 +21,21 @@ $ brew install carthage
 
 ## Usage
 
-
+#### Example
 
 style.css
 
 ```css
 @lazy true
-#root-view {background:#555;}
-#center-block {float:center; width:100; height:100; background:#f00;}
+.body {top:64; bottom:40%; width:100%;}
+.footer {bottom:0; width:100%; height:40%; background:#333; auto-size: auto}
+.footer CATextLayer {color:#fff; font-size:10; left:10; right:10; top:10; word-wrap: true; auto-size:height;}
+@media orientation:landscape {
+    .body {top:33;}
+}
+
+#test-basic .box {background:#aaa;}
+
 ```
 
 AppDelegate.swift
@@ -51,29 +58,47 @@ ViewController.swift
 ```swift
 class ViewController: CssViewController {
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        self.view.css(id: "root-view")
-        self.view.css(create: "#center-block")        
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        Css.debugPrint(self.view, deep: true)
+    override func loadView() {
+        super.loadView()
+        self.view.backgroundColor = .white
+        self.title = "Test Basic"
+        self.view.css(insert:
+            ".body#test-basic",
+            "   CALayer.box[style=top:10;left:5%;width:43%;height:100]",
+            "   CALayer.box[style=top:10;right:5%;width:43%;height:100]",
+            "   CALayer.box[style=top:130;left:5%;right:5%;bottom:10]",
+            "     CATextLayer[style=float:center;autoSize:auto;fontSize:16;color:#fff;][content=The center of the universe]",
+            "UIScrollView.footer > CATextLayer"
+        )
+        if let text = self.query(layer: ".footer > CATextLayer")?[0] as? CATextLayer {
+            text.string = 
+            css.joined(separator: "\n") +
+            "\n------------------------------------------\n" +
+            Css.debugPrint(self.view, noprint: true)
+        }
     }
 
 }
 ```
 
-![1](/Users/wl/Sites/Git/screenshots/swiftycss/1.png)
+![1](https://raw.githubusercontent.com/wl879/screenshots/master/swiftycss/basic.gif)
 
-![2](/Users/wl/Sites/Git/screenshots/swiftycss/2.png)
+#### Example screenshot
 
+![1](https://raw.githubusercontent.com/wl879/screenshots/master/swiftycss/layout.gif)
 
+![1](https://raw.githubusercontent.com/wl879/screenshots/master/swiftycss/style.gif)
+
+![1](https://raw.githubusercontent.com/wl879/screenshots/master/swiftycss/media.gif)
+
+![1](https://raw.githubusercontent.com/wl879/screenshots/master/swiftycss/selector.gif)
 
 ## Documentation
 
-### Css class static methods
+### Css module
+
+* **styleSheet**
+
 
 * func **Css.load**(file: String)
 
@@ -85,18 +110,17 @@ class ViewController: CssViewController {
 
 CALayer and UIView conforms to NodeProtocol
 
-* **nodeStyle**: Node.Style
+* **cssStyle**: CAStyle
 * **init**(tag: String? = nil, id: String? = nil, class clas: String? = nil, style: String? = nil, action: Bool? = nil, disable: Bool? = nil, lazy: Bool? = nil)
 * func **getAttribute**(_ key: String) -> Any?
 * func **setAttribute**(_ key: String, value: Any?)
 * func **css**(tag: String? = nil, id: String? = nil, class: String? = nil, style: String? = nil, action: Bool? = nil, disable: Bool? = nil, lazy: Bool? = nil)
-* func **css**(addClass: String)
+* func **css**(addClass: String)****
 * func **css**(removeClass: String)
-* func **css**(refresh signal: Node.Signal = .normal)
+* func **cssRefresh**()
 * func **css**(value name: String) -> Any?
 * func **css**(property name: String) -> String?
-* func **css**(create text: String)
-* func **css**(creates list: [String])
+* func **css**(insert: String...)
 * func **css**(query text: String) -> [CALayer]?
 
 
@@ -119,8 +143,8 @@ Support **pseudo** classes
 CALayer:nth-child(1) {}
 CALayer:first-child {}
 CALayer:last-child {}
-CALayer:root {}
 CALayer:empty {}
+CALayer:not(.box) {}
 CALayer:not([width > 100]) {}
 ```
 
@@ -133,61 +157,53 @@ CALayer[float = left] {}
 
 ### Support style propertys
 
-* `hidden`
+>  
+>
+>
+>  `opacity`    `fill or fill-color`     `background-color or background`   
+>
+>  `background-image`    `radius`    `shadow`    `hidden`    `z-index or z-position`  
+>
+>   `text-align`    `font-size`    `font-name`    `color`    `content`    `word-wrap`
+>
+>  `auto-size:auto/width/height`    `mask or overflow`    `transform`    `animate` 
 
-* `width` / `height` / `maxWidth` / `maxHeight` / `minWidth` / `minHeight`
+**`width`**    **`max-width`**    **`min-width`**    **`height`**    **`max-height`**    **`min-height`**
 
-* `top` / `left` / `right` / `bottom`
+> pt | number%
 
-* `transform`
+**`top`**    **`left`**    **`right`**    **`bottom`**
 
-* `zIndex` or `zPosition`
+> pt | number%
 
+**`float`**: 
 
-* `float`
+>  center | auto | top | left
 
-* `contentSize`
+**`align`**:
 
-* `align`
+> right | rightTop | left |  leftTop | bottom | leftBottom |  rightBottom
+>
+> center | leftCenter | topCenter | bottomCenter | rightCenter
 
-* `padding` / `paddingTop` / `paddingRight` / `paddingbottom` / `paddingLeft`
+**`margin`**    **`margin-top`**    **`margin-right`**    **`margin-bottom`**    **`margin-left`**
 
-* `margin` / `marginTop` / `marginRight` / `marginbottom` / `marginLeft`
+> pt | number%
 
+**`padding`**    **`padding-top`**    **`padding-right`**    **`padding-bottom`**    **`padding-left`**
 
+> pt | number%
 
-* `backgroundColor` or `background`
+**`border`**    **`border-top`**    **`border-right`**    **`border-bottom`**    **`border-left`**
 
-* `backgroundImage`
+>width || solid/dashed/(interval value) || color
 
-* `border` / `borderTop` / `borderRight` / `borderbottom` / `borderLeft`
+**`shadow`**
 
-* `opacity`
-
-* `fill` or `fillColor`
-
-* `mask` or `overflow`
-
-* `radius`
-
-* `shadow`
-
-
-* `content`
-
-* `textAlign`
-
-* `fontSize`
-
-* `fontName`
-
-* `color`
+> y-offset || x-offset || radius || color
 
 
-* `animate`
-
-
-#### Support AtRule for StyleSheet
+#### Support AtRule for **StyleSheet**
 
 * **@lazy**
 
@@ -209,7 +225,7 @@ CALayer[float = left] {}
 
   **Support media features**
 
-  `tvos` | `macos` | `watchos` | `ios` | `iphone` | `ipad` | `ipadpro` 
+  `tvos`  | `watchos` | `ios` | `iphone` | `ipad` | `ipadpro` 
 
   `iphone4` (320/480) | `iphone5` (320/568) | `iphone6 ` (375/667) | `iphone6plus` (414/736) 
 
@@ -221,5 +237,4 @@ CALayer[float = left] {}
 
   `min-height:xxx` | `max-height:xxx` | `height:xxx`
 
-  ​
 

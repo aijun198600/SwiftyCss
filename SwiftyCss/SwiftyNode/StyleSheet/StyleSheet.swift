@@ -6,161 +6,195 @@ extension Node {
     
     public class StyleSheet : CustomStringConvertible {
         
-        public var lazy = false
-        private var list     = [Rule]()
-        private var idMap    = [String:[Rule]]()
-        private var tagMap   = [String:[Rule]]()
-        private var classMap = [String:[Rule]]()
-        private var atRuleCache:[Int: Bool]? = nil
+        private static let _comment_lexer = Re("\\/\\*(?:.|\\s)*?\\*\\/")
+        private static let _atrule_lexer = Re("(@[^{\\n@;]+)(?:\\s*\\{((?:\\{[^}]*\\}|[^}])*)\\}|\\s*?[\\n;])?")
+        private static let _camel_lexer = Re("-([a-z])")
+        
+        // MARK: -
+        
+        public  var lazy          = false
+        private var _rules        = [StyleRule]()
+        private var _rulesById    = [String: [Int]]()
+        private var _rulesByTag   = [String: [Int]]()
+        private var _rulesByClass = [String: [Int]]()
+        private var _atRuleCache:[Int: Bool]? = nil
         
         public init(){}
         
-        final func add(rule: Rule) {
-            guard let select_rule = rule.selector?.rules.last else {
-                return
-            }
-            self.list.append( rule)
-            rule.sortIndex = self.list.count
-            
-            if let name = select_rule.id {
-                if self.idMap[name] == nil {
-                    self.idMap[name] = [Rule]()
-                }
-                self.idMap[name]!.append(rule)
-            }
-            if let name = select_rule.tag?.lowercased() {
-                if self.tagMap[name] == nil {
-                    self.tagMap[name] = [Rule]()
-                }
-                self.tagMap[name]!.append(rule)
-            }
-            for name in select_rule.clas {
-                if self.classMap[name] == nil {
-                    self.classMap[name] = [Rule]()
-                }
-                self.classMap[name]!.append(rule)
-            }
-            
+        public final func refrehs(){
+            self._atRuleCache = nil
+        }
+        
+        public final func clear(){
+            self._rules.removeAll()
+            self._rulesById.removeAll()
+            self._rulesByTag.removeAll()
+            self._rulesByClass.removeAll()
+            self._atRuleCache = nil
         }
         
         public final func parse(text: String){
             
-            let text = StyleSheet.COMM_RE.replace(text, "")
+            let text = StyleSheet._comment_lexer.replace(text, "")
+            #if DEBUG
+                Node.debug.begin(tag: "load", id: text.hashValue)
+            #endif
             
-            for block in StyleSheet.AT_RE.explode(text, trim: .whitespacesAndNewlines) {
-                
-                var block = block
-                var atRule: AtRule? = nil
-                
-                if block.hasPrefix("@"){
-                    guard let m = StyleSheet.AT_RE.match(block) else {
-                        continue
-                    }
-                    atRule = AtRule( "@" + m[1]! )
-                    block  = m[2]!
-                    if block.isEmpty {
-                        _ = atRule?.run(in: self)
-                        continue
-                    }
+            var str = text
+            while let m = StyleSheet._atrule_lexer.match(str) {
+                if m.index > 0 {
+                    self._parse( str.slice(start: 0, end: m.index), atRule: nil)
                 }
-                
-                for item in block.components(separatedBy: "}", trim: .whitespacesAndNewlines) {
-                    let temp = item.components(separatedBy: "{", trim: .whitespacesAndNewlines)
-                    guard temp.count == 2 else {
-                        continue
-                    }
-                    let value = StyleSheet.CAMEL_RE.replace(temp[1], {m in return m[1]!.uppercased()})
-                    for sel in temp[0].components(separatedBy: ",", trim: .whitespacesAndNewlines) {
-                        self.add(rule: Rule(selector: sel, property: value, atRule: atRule) )
-                    }
+                str = str.slice(start: m.lastIndex+1)
+                let at_rule = AtRule( m[1]! )
+                if m[2]!.isEmpty {
+                    _ = at_rule.run(with: self)
+                    #if DEBUG
+                        Node.debug.begin(tag: "load", id: text.hashValue)
+                    #endif
+                }else{
+                    self._parse(m[2]!, atRule: at_rule)
                 }
             }
+            if !str.isEmpty {
+                self._parse( str, atRule: nil)
+            }
+           
+            #if DEBUG
+                Node.debug.end(tag: "load", id: text.hashValue, self)
+            #endif
+            
         }
         
-        public final func match(node: NodeProtocol) -> [Rule]? {
-            guard let style = node.nodeStyle else {
-                return nil
+        public final func match(node: NodeProtocol) -> [StyleRule]? {
+            let style = node.nodeStyle
+            var indexs = Set<Int>()
+            
+            if _rulesById[ style.id ] != nil {
+                indexs.formUnion( _rulesById[ style.id ]! )
             }
-            var list = [Rule]()
-            if self.idMap[style.id] != nil {
-                list += self.idMap[style.id]!
+            if _rulesByTag[ style.tag ] != nil {
+                indexs.formUnion( _rulesByTag[ style.tag ]! )
             }
-            if self.tagMap[style.tag.lowercased()] != nil {
-                list += self.tagMap[style.tag.lowercased()]!
-            }
-            if self.tagMap["*"] != nil {
-                list += self.tagMap["*"]!
+            if _rulesByTag["*"] != nil {
+                indexs.formUnion( _rulesByTag["*"]! )
             }
             for name in style.clas {
-                if self.classMap[name] != nil {
-                    list += self.classMap[name]!
+                if _rulesByClass[name] != nil {
+                    indexs.formUnion( _rulesByClass[name]! )
                 }
-            }
-            if list.isEmpty {
-                return nil
-            }
-            var res = [Rule]()
-            for rule in list.sorted(by: StyleSheet.sort) {
-                guard checkAtRule( rule.atRule ) else {
-                    continue
-                }
-                if rule.check(node: node) {
-                    res.append( rule )
-                }
-            }
-            return res.isEmpty ? nil : res
-        }
-        
-        public final func refresh() {
-            self.atRuleCache = nil
-        }
-        
-        private func checkAtRule(_ atRule: Node.AtRule?) -> Bool {
-            guard let id = atRule?.hashValue else {
-                return true
-            }
-            if atRuleCache == nil {
-                DispatchQueue.main.asyncAfter(deadline: .now()){
-                    self.atRuleCache = nil
-                }
-                atRuleCache = [:]
             }
             
-            if atRuleCache![ id ] == nil {
-                atRuleCache![id] = atRule!.run(in: self)
+            if indexs.count > 0 {
+                if _atRuleCache == nil {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5 ){
+                        self._atRuleCache = nil
+                    }
+                    _atRuleCache = [:]
+                }
+                var res = [StyleRule]()
+                for i in indexs {
+                    if let id = _rules[i].atRule?.hashValue {
+                        if _atRuleCache?[id] != true {
+                            if _atRuleCache?[id] == false {
+                                continue
+                            }else {
+                                if _rules[i].atRule!.run(with: self) {
+                                    _atRuleCache?[id] = true
+                                }else{
+                                    _atRuleCache?[id] = false
+                                    continue
+                                }
+                            }
+                        }
+                    }
+                    if _rules[i].check(node: node) {
+                        res.append( _rules[i] )
+                    }
+                }
+                if res.count > 0 {
+                    return res.sorted(by: StyleSheet.sort)
+                }
             }
-            if atRuleCache![id] == false {
-                return false
-            }
-            return true
+            return nil
         }
         
-        public var description: String {
-            var desc = [String]()
-            for s in list {
-                desc.append( s.description )
+        private final func _parse(_ text: String, atRule: AtRule?) {
+            for item in text.components(separatedBy: "}", trim: .whitespacesAndNewlines) {
+                let temp = item.components(separatedBy: "{", trim: .whitespacesAndNewlines)
+                guard temp.count == 2 else {
+                    continue
+                }
+                let value = StyleSheet._camel_lexer.replace(temp[1], {m in return m[1]!.uppercased()})
+                for sel in temp[0].components(separatedBy: ",", trim: .whitespacesAndNewlines) {
+                    self._add(rule: StyleRule(selector: sel, property: value, atRule: atRule) )
+                }
             }
-            return desc.joined(separator: "\n")
+        }
+        
+        private final func _add( rule: StyleRule ) {
+            guard let key = rule.selector.rules.last else {
+                return
+            }
+            
+            let index = _rules.count
+            rule.sortIndex = index
+            _rules.append( rule )
+            
+            if let name = key.id {
+                if _rulesById[name] == nil {
+                    _rulesById[name] = []
+                }
+                _rulesById[name]!.append(index)
+                
+            }else if let name = key.tag {
+                if _rulesByTag[name] == nil {
+                    _rulesByTag[name] = []
+                }
+                _rulesByTag[name]!.append(index)
+                
+            }else {
+                for name in key.clas {
+                    if _rulesByClass[name] == nil {
+                        _rulesByClass[name] = []
+                    }
+                    _rulesByClass[name]!.append(index)
+                }
+            }
+        }
+        
+
+        // MARK: -
+        
+        public var description: String {
+            var desc = ""
+            var atrule = [String: String]()
+            for rule in _rules {
+                if rule.atRule == nil {
+                    desc += rule.description + "\n"
+                }else{
+                    let at_text = rule.atRule!.description
+                    if atrule[at_text] == nil {
+                        atrule[at_text] = ""
+                    }
+                    atrule[at_text]! += "    " + rule.description.slice(start: at_text.characters.count+1) + "\n"
+                }
+            }
+            for (key, value) in atrule {
+                desc += key + " {\n" + value + "}\n"
+            }
+            return desc
         }
 
         
         // MARK: - Static
         
-        static func sort(_ a: Rule, _ b: Rule) -> Bool {
-            let _a = a.selector!.rules.last?.description.characters.count ?? 0
-            let _b = b.selector!.rules.last?.description.characters.count ?? 0
-            if _a == _b {
+        static func sort(_ a: StyleRule, _ b: StyleRule) -> Bool {
+            if a.sortPriority == b.sortPriority {
                 return a.sortIndex < b.sortIndex
             }
-            return _a < _b
+            return a.sortPriority < b.sortPriority
         }
-        
-        
-        // MARK: - Private Static
-        
-        private static let CAMEL_RE = Re("-([a-z])")
-        private static let COMM_RE = Re("\\/\\*(?:.|\\s)*?\\*\\/")
-        private static let AT_RE = Re("@([^{\\n@;]+)(?:\\s*\\{((?:\\{[^}]*\\}|[^}])*)\\}|\\s*?[\\n;])?")
         
     }
     

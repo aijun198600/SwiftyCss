@@ -7,8 +7,12 @@ extension UIView: NodeProtocol {
     
     // MARK: - Protocol
     
-    public var nodeStyle: Node.Style? {
+    public final var nodeStyle: Node.Style {
         return layer.nodeStyle
+    }
+    
+    public final var cssStyle: CAStyle {
+        return self.layer.cssStyle
     }
     
     open func getAttribute(_ key: String) -> Any? {
@@ -59,51 +63,49 @@ extension UIView: NodeProtocol {
         }
     }
     
-    // MARK: - Public
+    // MARK: -
     
-    public func css(tag: String? = nil, id: String? = nil, class clas: String? = nil, style text: String? = nil, action: Bool? = nil, disable: Bool? = nil, lazy: Bool? = nil) {
+    public final func css(tag: String? = nil, id: String? = nil, class clas: String? = nil, style text: String? = nil, action: Bool? = nil, disable: Bool? = nil, lazy: Bool? = nil) {
         self.layer.css(tag: tag, id: id, class: clas, style: text, action: action, disable: disable, lazy: lazy)
     }
     
-    public func css(addClass clas: String) {
+    public final func css(addClass clas: String) {
         self.layer.css(addClass: clas)
     }
     
-    public func css(removeClass clas: String) {
+    public final func css(removeClass clas: String) {
         self.layer.css(removeClass: clas)
     }
     
-    public func css(refresh signal: Node.Status? = nil) {
-        self.layer.css(refresh: signal)
-    }
-    
-    public func css(value name: String) -> Any? {
+    public final func css(value name: String) -> Any? {
         return self.layer.css(value: name)
     }
     
-    public func css(property name: String) -> String? {
+    public final func css(property name: String) -> String? {
         return self.layer.css(property: name)
     }
     
-    public func css(create text: String) {
-        if let nodes = Node.create(jade: text, default: "UIView") {
-            for n in nodes {
-                self.addChild( n )
-            }
-        }
-    }
-    
-    public func css(creates list: [String]) {
-        if let nodes = Node.create(jade: list, default: "UIView") {
-            for n in nodes {
-                self.addChild( n )
-            }
-        }
-    }
-    
-    public func css(query text: String) -> [CALayer]? {
+    public final func css(query text: String) -> [CALayer]? {
         return self.layer.css(query: text)
     }
+    
+    public final func css(insert: String...) {
+        let nodes: [NodeProtocol]?
+        if insert.count == 1 {
+            nodes = Node.create(text: insert[0], default: "UIView")
+        }else {
+            nodes = Node.create(lines: insert, default: "UIView")
+        }
+        if nodes != nil {
+            for n in nodes! {
+                self.addChild( n )
+            }
+        }
+    }
 
+    public final func cssRefresh() {
+        self.layer.cssRefresh()
+    }
+    
 }
 

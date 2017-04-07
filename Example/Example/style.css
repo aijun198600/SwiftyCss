@@ -1,4 +1,10 @@
 @lazy true
-/*@debug true*/
-#root-view {background:#555;}
-#center-block {float:center; width:100; height:100; background:#f00;}
+@debug root-refresh
+
+.body {top:64; bottom:40%; width:100%;}
+.footer {bottom:0; width:100%; height:40%; background:#333; auto-size: auto}
+.footer CATextLayer {color:#fff; font-size:10; left:10; right:10; top:10; word-wrap: true; auto-size:height;}
+
+@media orientation:landscape {
+    .body {top:33;}
+}

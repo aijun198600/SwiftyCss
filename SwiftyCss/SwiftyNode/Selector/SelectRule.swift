@@ -4,11 +4,11 @@ import SwiftyBox
 
 extension Node {
     
-    public class SelectRule {
+    class SelectRule: CustomStringConvertible {
         
-        private static let lexer = Re(
+        private static let _lexer = Re(
             "(^|[#.])([\\w\\-]+)|" +
-            "(\\[)([^\\]]*)\\]|" +
+            "(\\[)((?:\\[[^\\]]*\\]|[^\\]])*)\\]|" +
             "(::|:)([\\w\\-]+)(?:\\(([^)]*)\\))?|" +
             "([>+~*])"
         )
@@ -18,24 +18,23 @@ extension Node {
         let tag         :String?
         let id          :String?
         let clas        :Set<String>
-        let conditions  :[Node.Expression]
-        let pseudo      :String?
-        let pseudoParam :String?
+        let pseudo      :Pseudo?
         let combinator  :String?
-        let description :String
+        let conditions  :[Node.Expression]?
+        let attributes  :[String]?
+        public let description :String
         
-        init(_ text: String) {
-            
+        init(_ text: String, forCreate: Bool) {
             var tag:String?        = nil
             var id:String?         = nil
             var clas:Set<String>   = []
+            var pseudo:Pseudo?     = nil
+            var combinator:String? = nil
             var conditions:[Node.Expression] = []
-            var pseudo:String?         = nil
-            var pseudoParam:String?    = nil
-            var combinator:String?     = nil
+            var attributes:[String] = []
             
             var offset = 0
-            while let m = SelectRule.lexer.match(text, offset: offset) {
+            while let m = SelectRule._lexer.match(text, offset: offset) {
                 offset = m.lastIndex + 1
                 switch m[1]! + m[3]! + m[5]! + m[8]! {
                 case ">", "+", "~":
@@ -45,12 +44,13 @@ extension Node {
                 case ".":
                     clas.insert(m[2]!)
                 case "::", ":":
-                    pseudo = m[6]!
-                    if !m[7]!.isEmpty {
-                        pseudoParam = m[7]!
-                    }
+                    pseudo = Pseudo(name: m[6]!, params: m[7]!.isEmpty ? nil : m[7] )
                 case "[":
-                    conditions.append( Node.Expression(m[4]!) )
+                    if forCreate {
+                        attributes.append( m[4]! )
+                    }else{
+                        conditions.append( Node.Expression(m[4]!) )
+                    }
                 case "*":
                     tag = m[8]!
                 default:
@@ -58,13 +58,13 @@ extension Node {
                 }
             }
             
-            self.tag = tag
-            self.id  = id
-            self.clas = clas
-            self.conditions = conditions
-            self.pseudo = pseudo
-            self.pseudoParam = pseudoParam
+            self.tag        = tag
+            self.id         = id
+            self.clas       = clas
+            self.pseudo     = pseudo
             self.combinator = combinator
+            self.conditions = conditions.isEmpty ? nil : conditions
+            self.attributes = attributes.isEmpty ? nil : attributes
             
             var desc = (self.combinator ?? "") + (self.tag ?? "")
             if self.id != nil {
@@ -73,55 +73,53 @@ extension Node {
             if !self.clas.isEmpty {
                 desc += "." + self.clas.joined(separator:".")
             }
-            for c in self.conditions {
-                desc += "[" + c.exps.joined() + "]"
+            if self.conditions != nil {
+                for c in self.conditions! {
+                    desc += "[" + c.description + "]"
+                }
+            }
+            if self.attributes != nil {
+                for c in self.attributes! {
+                    desc += "[" + c + "]"
+                }
             }
             if self.pseudo != nil {
-                desc += ":\(self.pseudo!)" + (self.pseudoParam != nil ? "(\(self.pseudoParam!))" : "")
+                desc += self.pseudo!.description
             }
             self.description = desc
         }
         
-        public func match(_ node: NodeProtocol, nonPseudo: Bool = false ) -> [NodeProtocol]? {
-            guard let style = node.nodeStyle else {
-                return nil
+        public final func check(_ node: NodeProtocol, nonPseudo: Bool = false ) -> Bool {
+            let style = node.nodeStyle
+            guard self.tag == nil || self.tag == "*" || self.tag == style.tag else {
+                return false
             }
-            
-            if self.tag != nil && self.tag != "*" && self.tag!.lowercased() != style.tag.lowercased() {
-                return nil
-            }
-            if self.id != nil && self.id != style.id {
-                return nil
+            guard self.id == nil || self.id == style.id else {
+                return false
             }
             if self.clas.count > 0 {
                 if style.clas.isEmpty {
-                    return nil
+                    return false
                 }
-                for n in self.clas {
-                    if style.clas.contains(n) == false {
-                        return nil
+                for name in self.clas {
+                    if style.clas.contains(name) == false {
+                        return false
                     }
                 }
             }
-            var res = [node]
             if nonPseudo == false && self.pseudo != nil {
-                if let ref = Pseudo.parse(rule: self, node: node) {
-                    res = ref
-                }else{
-                    return nil
+                if self.pseudo!.run(with: node) == false {
+                    return false
                 }
             }
-            if self.conditions.isEmpty == false {
-                for i in (0 ..< res.count).reversed() {
-                    for e in 0 ..< self.conditions.count {
-                        if Bool(self.conditions[e].run(with: node)) == false {
-                            res.remove(at: i)
-                            break
-                        }
+            if self.conditions != nil {
+                for e in 0 ..< self.conditions!.count {
+                    if Bool(self.conditions![e].run(with: node)) == false {
+                        return false
                     }
                 }
             }
-            return res.isEmpty ? nil : res
+            return true
         }
         
     }

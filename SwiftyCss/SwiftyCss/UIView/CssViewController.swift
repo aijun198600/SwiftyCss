@@ -11,7 +11,7 @@ open class CssViewController: UIViewController {
     
     open override func viewWillLayoutSubviews () {
         super.viewWillLayoutSubviews()
-        Css.refresh(self.view, debug: Css.debug)
+        Css.refresh(self.view)
     }
     
     open func query(view seletor: String) -> [UIView]? {

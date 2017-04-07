@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		770710291E8E53F1009D9304 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770710281E8E53F1009D9304 /* Value.swift */; };
-		7707102B1E8E788C009D9304 /* Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7707102A1E8E788C009D9304 /* Debug.swift */; };
+		774B0A4B1E90B23700E4CDDE /* Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774B0A4A1E90B23700E4CDDE /* Debug.swift */; };
 		77D579121E8DEE2C0006F0E6 /* SwiftyCss.h in Headers */ = {isa = PBXBuildFile; fileRef = 77D579101E8DEE2C0006F0E6 /* SwiftyCss.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		77D579461E8DEFD50006F0E6 /* SwiftyNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 77D579441E8DEFD50006F0E6 /* SwiftyNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		77D579531E8DEFEA0006F0E6 /* SwiftyBox.h in Headers */ = {isa = PBXBuildFile; fileRef = 77D579511E8DEFEA0006F0E6 /* SwiftyBox.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -24,7 +23,7 @@
 		77D579771E8DF0610006F0E6 /* Pseudo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579691E8DF0610006F0E6 /* Pseudo.swift */; };
 		77D579781E8DF0610006F0E6 /* Select.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796A1E8DF0610006F0E6 /* Select.swift */; };
 		77D579791E8DF0610006F0E6 /* SelectRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796B1E8DF0610006F0E6 /* SelectRule.swift */; };
-		77D5797A1E8DF0610006F0E6 /* Signal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796D1E8DF0610006F0E6 /* Signal.swift */; };
+		77D5797A1E8DF0610006F0E6 /* Status.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796D1E8DF0610006F0E6 /* Status.swift */; };
 		77D5797B1E8DF0610006F0E6 /* Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796E1E8DF0610006F0E6 /* Style.swift */; };
 		77D5797C1E8DF0610006F0E6 /* Ticker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796F1E8DF0610006F0E6 /* Ticker.swift */; };
 		77D5797D1E8DF0610006F0E6 /* AtRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579711E8DF0610006F0E6 /* AtRule.swift */; };
@@ -47,8 +46,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		770710281E8E53F1009D9304 /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Value.swift; sourceTree = "<group>"; };
-		7707102A1E8E788C009D9304 /* Debug.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Debug.swift; sourceTree = "<group>"; };
+		774B0A4A1E90B23700E4CDDE /* Debug.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Debug.swift; sourceTree = "<group>"; };
 		77D5790D1E8DEE2C0006F0E6 /* SwiftyCss.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftyCss.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		77D579101E8DEE2C0006F0E6 /* SwiftyCss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwiftyCss.h; sourceTree = "<group>"; };
 		77D579111E8DEE2C0006F0E6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -70,7 +68,7 @@
 		77D579691E8DF0610006F0E6 /* Pseudo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pseudo.swift; sourceTree = "<group>"; };
 		77D5796A1E8DF0610006F0E6 /* Select.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Select.swift; sourceTree = "<group>"; };
 		77D5796B1E8DF0610006F0E6 /* SelectRule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectRule.swift; sourceTree = "<group>"; };
-		77D5796D1E8DF0610006F0E6 /* Signal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Signal.swift; sourceTree = "<group>"; };
+		77D5796D1E8DF0610006F0E6 /* Status.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Status.swift; sourceTree = "<group>"; };
 		77D5796E1E8DF0610006F0E6 /* Style.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Style.swift; sourceTree = "<group>"; };
 		77D5796F1E8DF0610006F0E6 /* Ticker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Ticker.swift; sourceTree = "<group>"; };
 		77D579711E8DF0610006F0E6 /* AtRule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AtRule.swift; sourceTree = "<group>"; };
@@ -160,7 +158,6 @@
 				77D579701E8DF0610006F0E6 /* StyleSheet */,
 				77D5796C1E8DF0610006F0E6 /* Style */,
 				77D579741E8DF0610006F0E6 /* Node.swift */,
-				7707102A1E8E788C009D9304 /* Debug.swift */,
 				77D579441E8DEFD50006F0E6 /* SwiftyNode.h */,
 				77D579451E8DEFD50006F0E6 /* Info.plist */,
 			);
@@ -170,6 +167,7 @@
 		77D579501E8DEFEA0006F0E6 /* SwiftyBox */ = {
 			isa = PBXGroup;
 			children = (
+				774B0A4A1E90B23700E4CDDE /* Debug.swift */,
 				77D579571E8DF0450006F0E6 /* Bool.swift */,
 				77D579581E8DF0450006F0E6 /* CGFloat.swift */,
 				77D579591E8DF0450006F0E6 /* Color.swift */,
@@ -205,10 +203,9 @@
 		77D5796C1E8DF0610006F0E6 /* Style */ = {
 			isa = PBXGroup;
 			children = (
-				77D5796D1E8DF0610006F0E6 /* Signal.swift */,
+				77D5796D1E8DF0610006F0E6 /* Status.swift */,
 				77D5796E1E8DF0610006F0E6 /* Style.swift */,
 				77D5796F1E8DF0610006F0E6 /* Ticker.swift */,
-				770710281E8E53F1009D9304 /* Value.swift */,
 			);
 			path = Style;
 			sourceTree = "<group>";
@@ -434,15 +431,13 @@
 				77D579771E8DF0610006F0E6 /* Pseudo.swift in Sources */,
 				77D579761E8DF0610006F0E6 /* Expression.swift in Sources */,
 				77D5797B1E8DF0610006F0E6 /* Style.swift in Sources */,
-				7707102B1E8E788C009D9304 /* Debug.swift in Sources */,
-				77D5797A1E8DF0610006F0E6 /* Signal.swift in Sources */,
+				77D5797A1E8DF0610006F0E6 /* Status.swift in Sources */,
 				77D5797C1E8DF0610006F0E6 /* Ticker.swift in Sources */,
 				77D5797F1E8DF0610006F0E6 /* StyleSheet.swift in Sources */,
 				77D5797E1E8DF0610006F0E6 /* StyleRule.swift in Sources */,
 				77D5797D1E8DF0610006F0E6 /* AtRule.swift in Sources */,
 				77D579801E8DF0610006F0E6 /* Node.swift in Sources */,
 				77D579751E8DF0610006F0E6 /* Creater.swift in Sources */,
-				770710291E8E53F1009D9304 /* Value.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -455,6 +450,7 @@
 				77D5795E1E8DF0450006F0E6 /* Bool.swift in Sources */,
 				77D579611E8DF0450006F0E6 /* Path.swift in Sources */,
 				77D579621E8DF0450006F0E6 /* Re.swift in Sources */,
+				774B0A4B1E90B23700E4CDDE /* Debug.swift in Sources */,
 				77D579601E8DF0450006F0E6 /* Color.swift in Sources */,
 				77D579641E8DF0450006F0E6 /* Weak.swift in Sources */,
 			);
