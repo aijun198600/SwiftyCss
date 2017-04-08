@@ -1,3 +1,5 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import Foundation
 import SwiftyBox
@@ -58,7 +60,7 @@ extension Node {
             var index = -1
             var count = sibling.count
             for i in 0 ..< sibling.count {
-                if sibling[i].nodeStyle.disable {
+                if sibling[i].styler.disable {
                     count -= 1
                     continue
                 }

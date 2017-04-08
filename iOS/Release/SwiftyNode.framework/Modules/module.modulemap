@@ -1,0 +1,10 @@
+framework module SwiftyNode {
+  umbrella header "SwiftyNode.h"
+
+  export *
+  module * { export * }
+}
+
+module SwiftyNode.Swift {
+    header "SwiftyNode-Swift.h"
+}

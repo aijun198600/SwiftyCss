@@ -1,3 +1,5 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import Foundation
 import SwiftyBox
@@ -90,19 +92,19 @@ extension Node {
         }
         
         public final func check(_ node: NodeProtocol, nonPseudo: Bool = false ) -> Bool {
-            let style = node.nodeStyle
-            guard self.tag == nil || self.tag == "*" || self.tag == style.tag else {
+            let styler = node.styler
+            guard self.tag == nil || self.tag == "*" || self.tag == styler.tag else {
                 return false
             }
-            guard self.id == nil || self.id == style.id else {
+            guard self.id == nil || self.id == styler.id else {
                 return false
             }
             if self.clas.count > 0 {
-                if style.clas.isEmpty {
+                if styler.clas.isEmpty {
                     return false
                 }
                 for name in self.clas {
-                    if style.clas.contains(name) == false {
+                    if styler.clas.contains(name) == false {
                         return false
                     }
                 }

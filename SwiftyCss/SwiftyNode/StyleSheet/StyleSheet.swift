@@ -1,3 +1,5 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import Foundation
 import SwiftyBox
@@ -12,7 +14,7 @@ extension Node {
         
         // MARK: -
         
-        public  var lazy          = false
+        public  var lazy          = true
         private var _rules        = [StyleRule]()
         private var _rulesById    = [String: [Int]]()
         private var _rulesByTag   = [String: [Int]]()
@@ -37,7 +39,7 @@ extension Node {
             
             let text = StyleSheet._comment_lexer.replace(text, "")
             #if DEBUG
-                Node.debug.begin(tag: "load", id: text.hashValue)
+            Node.debug.begin(tag: "load", id: text.hashValue)
             #endif
             
             var str = text
@@ -50,7 +52,7 @@ extension Node {
                 if m[2]!.isEmpty {
                     _ = at_rule.run(with: self)
                     #if DEBUG
-                        Node.debug.begin(tag: "load", id: text.hashValue)
+                    Node.debug.begin(tag: "load", id: text.hashValue)
                     #endif
                 }else{
                     self._parse(m[2]!, atRule: at_rule)
@@ -59,27 +61,25 @@ extension Node {
             if !str.isEmpty {
                 self._parse( str, atRule: nil)
             }
-           
             #if DEBUG
-                Node.debug.end(tag: "load", id: text.hashValue, self)
+            Node.debug.end(tag: "load", id: text.hashValue, self)
             #endif
-            
         }
         
         public final func match(node: NodeProtocol) -> [StyleRule]? {
-            let style = node.nodeStyle
+            let styler = node.styler
             var indexs = Set<Int>()
             
-            if _rulesById[ style.id ] != nil {
-                indexs.formUnion( _rulesById[ style.id ]! )
+            if _rulesById[ styler.id ] != nil {
+                indexs.formUnion( _rulesById[ styler.id ]! )
             }
-            if _rulesByTag[ style.tag ] != nil {
-                indexs.formUnion( _rulesByTag[ style.tag ]! )
+            if _rulesByTag[ styler.tag ] != nil {
+                indexs.formUnion( _rulesByTag[ styler.tag ]! )
             }
             if _rulesByTag["*"] != nil {
                 indexs.formUnion( _rulesByTag["*"]! )
             }
-            for name in style.clas {
+            for name in styler.clas {
                 if _rulesByClass[name] != nil {
                     indexs.formUnion( _rulesByClass[name]! )
                 }

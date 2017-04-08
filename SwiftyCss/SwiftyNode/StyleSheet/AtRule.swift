@@ -1,3 +1,5 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import Foundation
 import SwiftyBox
@@ -51,14 +53,14 @@ extension Node {
                 }
                 if logic == "not" ? ref == true : ref == false {
                     #if DEBUG
-                        Node.debug.log(tag: "at-rule", self, false)
+                    Node.debug.log(tag: "at-rule", self, false)
                     #endif
                     return false
                 }
                 logic = ""
             }
             #if DEBUG
-                Node.debug.log(tag: "at-rule", self, true)
+            Node.debug.log(tag: "at-rule", self, true)
             #endif
             return true
         }

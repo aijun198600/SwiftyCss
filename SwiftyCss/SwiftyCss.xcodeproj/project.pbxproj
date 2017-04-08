@@ -24,14 +24,14 @@
 		77D579781E8DF0610006F0E6 /* Select.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796A1E8DF0610006F0E6 /* Select.swift */; };
 		77D579791E8DF0610006F0E6 /* SelectRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796B1E8DF0610006F0E6 /* SelectRule.swift */; };
 		77D5797A1E8DF0610006F0E6 /* Status.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796D1E8DF0610006F0E6 /* Status.swift */; };
-		77D5797B1E8DF0610006F0E6 /* Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796E1E8DF0610006F0E6 /* Style.swift */; };
+		77D5797B1E8DF0610006F0E6 /* Styler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796E1E8DF0610006F0E6 /* Styler.swift */; };
 		77D5797C1E8DF0610006F0E6 /* Ticker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5796F1E8DF0610006F0E6 /* Ticker.swift */; };
 		77D5797D1E8DF0610006F0E6 /* AtRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579711E8DF0610006F0E6 /* AtRule.swift */; };
 		77D5797E1E8DF0610006F0E6 /* StyleRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579721E8DF0610006F0E6 /* StyleRule.swift */; };
 		77D5797F1E8DF0610006F0E6 /* StyleSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579731E8DF0610006F0E6 /* StyleSheet.swift */; };
 		77D579801E8DF0610006F0E6 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579741E8DF0610006F0E6 /* Node.swift */; };
 		77D5798E1E8DF0E40006F0E6 /* CALayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579821E8DF0E40006F0E6 /* CALayer.swift */; };
-		77D5798F1E8DF0E40006F0E6 /* CAStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579841E8DF0E40006F0E6 /* CAStyle.swift */; };
+		77D5798F1E8DF0E40006F0E6 /* CAStyler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579841E8DF0E40006F0E6 /* CAStyler.swift */; };
 		77D579901E8DF0E40006F0E6 /* Property.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579851E8DF0E40006F0E6 /* Property.swift */; };
 		77D579911E8DF0E40006F0E6 /* Updata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579861E8DF0E40006F0E6 /* Updata.swift */; };
 		77D579921E8DF0E40006F0E6 /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D579871E8DF0E40006F0E6 /* Value.swift */; };
@@ -69,14 +69,14 @@
 		77D5796A1E8DF0610006F0E6 /* Select.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Select.swift; sourceTree = "<group>"; };
 		77D5796B1E8DF0610006F0E6 /* SelectRule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectRule.swift; sourceTree = "<group>"; };
 		77D5796D1E8DF0610006F0E6 /* Status.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Status.swift; sourceTree = "<group>"; };
-		77D5796E1E8DF0610006F0E6 /* Style.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Style.swift; sourceTree = "<group>"; };
+		77D5796E1E8DF0610006F0E6 /* Styler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Styler.swift; sourceTree = "<group>"; };
 		77D5796F1E8DF0610006F0E6 /* Ticker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Ticker.swift; sourceTree = "<group>"; };
 		77D579711E8DF0610006F0E6 /* AtRule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AtRule.swift; sourceTree = "<group>"; };
 		77D579721E8DF0610006F0E6 /* StyleRule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StyleRule.swift; sourceTree = "<group>"; };
 		77D579731E8DF0610006F0E6 /* StyleSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StyleSheet.swift; sourceTree = "<group>"; };
 		77D579741E8DF0610006F0E6 /* Node.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		77D579821E8DF0E40006F0E6 /* CALayer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CALayer.swift; sourceTree = "<group>"; };
-		77D579841E8DF0E40006F0E6 /* CAStyle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CAStyle.swift; sourceTree = "<group>"; };
+		77D579841E8DF0E40006F0E6 /* CAStyler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CAStyler.swift; sourceTree = "<group>"; };
 		77D579851E8DF0E40006F0E6 /* Property.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Property.swift; sourceTree = "<group>"; };
 		77D579861E8DF0E40006F0E6 /* Updata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Updata.swift; sourceTree = "<group>"; };
 		77D579871E8DF0E40006F0E6 /* Value.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Value.swift; sourceTree = "<group>"; };
@@ -204,7 +204,7 @@
 			isa = PBXGroup;
 			children = (
 				77D5796D1E8DF0610006F0E6 /* Status.swift */,
-				77D5796E1E8DF0610006F0E6 /* Style.swift */,
+				77D5796E1E8DF0610006F0E6 /* Styler.swift */,
 				77D5796F1E8DF0610006F0E6 /* Ticker.swift */,
 			);
 			path = Style;
@@ -231,7 +231,7 @@
 		77D579831E8DF0E40006F0E6 /* CAStyle */ = {
 			isa = PBXGroup;
 			children = (
-				77D579841E8DF0E40006F0E6 /* CAStyle.swift */,
+				77D579841E8DF0E40006F0E6 /* CAStyler.swift */,
 				77D579851E8DF0E40006F0E6 /* Property.swift */,
 				77D579861E8DF0E40006F0E6 /* Updata.swift */,
 				77D579871E8DF0E40006F0E6 /* Value.swift */,
@@ -409,7 +409,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				77D5798F1E8DF0E40006F0E6 /* CAStyle.swift in Sources */,
+				77D5798F1E8DF0E40006F0E6 /* CAStyler.swift in Sources */,
 				77D579921E8DF0E40006F0E6 /* Value.swift in Sources */,
 				77D579901E8DF0E40006F0E6 /* Property.swift in Sources */,
 				77D579911E8DF0E40006F0E6 /* Updata.swift in Sources */,
@@ -430,7 +430,7 @@
 				77D579791E8DF0610006F0E6 /* SelectRule.swift in Sources */,
 				77D579771E8DF0610006F0E6 /* Pseudo.swift in Sources */,
 				77D579761E8DF0610006F0E6 /* Expression.swift in Sources */,
-				77D5797B1E8DF0610006F0E6 /* Style.swift in Sources */,
+				77D5797B1E8DF0610006F0E6 /* Styler.swift in Sources */,
 				77D5797A1E8DF0610006F0E6 /* Status.swift in Sources */,
 				77D5797C1E8DF0610006F0E6 /* Ticker.swift in Sources */,
 				77D5797F1E8DF0610006F0E6 /* StyleSheet.swift in Sources */,
@@ -506,7 +506,8 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -552,7 +553,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";

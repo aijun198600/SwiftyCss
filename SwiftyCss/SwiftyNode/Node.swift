@@ -1,10 +1,12 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import Foundation
 import SwiftyBox
 
 public protocol NodeProtocol: NSObjectProtocol {
     
-    var nodeStyle: Node.Style { get }
+    var styler: Node.Styler { get }
     
     var childNodes: [NodeProtocol] {get}
     
@@ -22,14 +24,18 @@ public protocol NodeProtocol: NSObjectProtocol {
 
 public class Node {
     
+    #if DEBUG
     public static let debug = Debug(tags: [
         "refresh" : "💣 SwiftyNode Refresh (%ms):\n    node: % 🚥 %\n    matched: %[]\n",
         "status"  : "🛎 SwiftyNode Status (%): % 🚥 %\n",
-        "create"  : "💰 SwiftyNode Create (%ms):\n    %[]\n",
         "load"    : "🗄 SwiftyNode StyleSheet Load (%ms):\n    %\n",
         "ticker"  : "⏰ SwiftyNode Ticker % (%): % 🚥 %\n",
         "at-rule" : "@ SwiftyNode AtRule: (%) => %"
     ])
+    #else
+    public static let debug = Debug(tags: [:])
+    #endif
+    
     
     
     public static func registe(atRule: String, parser: @escaping Node.AtRuleParser) {
@@ -50,28 +56,25 @@ public class Node {
         return Node.Select(text).check(node)
     }
     
-    
-    
-    public static func describing(_ nodes: [NodeProtocol], deep: Bool = false) -> String {
-        var text = ""
-        for i in 0 ..< nodes.count {
-            if i != 0 {
-                text += "\n"
-            }
-            text += describing(nodes[i], deep: deep)
-        }
-        return text
-    }
-    
-    
-    public static func describing(_ node: NodeProtocol, deep: Bool = false) -> String {
-        var text = node.nodeStyle.description
-        if deep && node.childNodes.count > 0 {
-            for n in node.childNodes {
-                text += "\n    " + describing(n, deep:deep).replacingOccurrences(of: "\n", with: "\n    ")
-            }
-        }
-        return text
-    }
+//    public static func describing(_ nodes: [NodeProtocol], deep: Bool = false) -> String {
+//        var text = ""
+//        for i in 0 ..< nodes.count {
+//            if i != 0 {
+//                text += "\n"
+//            }
+//            text += describing(nodes[i], deep: deep)
+//        }
+//        return text
+//    }
+//    
+//    public static func describing(_ node: NodeProtocol, deep: Bool = false) -> String {
+//        var text = node.nodeStyle.description
+//        if deep && node.childNodes.count > 0 {
+//            for n in node.childNodes {
+//                text += "\n    " + describing(n, deep:deep).replacingOccurrences(of: "\n", with: "\n    ")
+//            }
+//        }
+//        return text
+//    }
     
 }

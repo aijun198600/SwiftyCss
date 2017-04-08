@@ -3,6 +3,10 @@ Use Css rule development iOS App
 
 ## Installation
 
+#### Simple
+
+Drag  **`SwiftyCss.framework`**/**`SwiftyNode.framework`**/**`SwiftyBox.framework`** from `iOS/Release/` or `iOS/Debug/`
+
 #### Carthage
 
 [Carthage](https://github.com/Carthage/Carthage) is a decentralized dependency manager that builds your dependencies and provides you with binary frameworks.
@@ -13,11 +17,13 @@ Use Css rule development iOS App
 $ brew install carthage
 ```
 
-**2.** Add  `github "wl879/SwiftyCss"` to ` Cartfile`  into your Xcode project
+**2.** Add  **`github "wl879/SwiftyCss"`**  to **` Cartfile`**  into your Xcode project
 
-**3.** Run `carthage update` 
+**3.** Run **`carthage update`**
 
-**4.** Drag **`SwiftyCss.framework`**/**`SwiftyNode.framework`**/**`SwiftyBox.framework`** from the appropriate platform directory in `Carthage/Build/` to the “Linked Frameworks and Libraries” section of your Xcode project’s “General” settings.
+If you want to view the debug information，run **`carthage update --configuration Debug`**
+
+**4.** Drag **`SwiftyCss.framework`**/**`SwiftyNode.framework`**/**`SwiftyBox.framework`** from the appropriate platform directory in `Carthage/Build/` 
 
 ## Usage
 
@@ -157,17 +163,6 @@ CALayer[float = left] {}
 
 ### Support style propertys
 
->  
->
->
->  `opacity`    `fill or fill-color`     `background-color or background`   
->
->  `background-image`    `radius`    `shadow`    `hidden`    `z-index or z-position`  
->
->   `text-align`    `font-size`    `font-name`    `color`    `content`    `word-wrap`
->
->  `auto-size:auto/width/height`    `mask or overflow`    `transform`    `animate` 
-
 **`width`**    **`max-width`**    **`min-width`**    **`height`**    **`max-height`**    **`min-height`**
 
 > pt | number%
@@ -202,6 +197,14 @@ CALayer[float = left] {}
 
 > y-offset || x-offset || radius || color
 
+>
+>  `opacity`    `fill or fill-color`     `background-color or background`   
+>
+>  `background-image`    `radius`    `shadow`    `hidden`    `z-index or z-position`  
+>
+>   `text-align`    `font-size`    `font-name`    `color`    `content`    `word-wrap`
+>
+>  `auto-size:auto/width/height`    `mask or overflow`    `transform`    `animate` 
 
 #### Support AtRule for **StyleSheet**
 
@@ -211,7 +214,11 @@ CALayer[float = left] {}
 
 * **@debug**
 
-  `@debug true` enable debug mode, this will print parse messages.
+  > **! Need to import the debug version**
+
+  `@debug all, refresh, status, load, ticker, at-rule, begin, listen, insert`
+
+   enable debug mode, this will print parse messages.
 
 * **@media**
 
@@ -221,11 +228,20 @@ CALayer[float = left] {}
   @madia orientation: landscape {
     ...
   }
+  @madia iphone {
+    ...
+  }
+  @madia ipad {
+    ...
+  }
+  @madia min-width:320 {
+    ...
+  }
   ```
 
   **Support media features**
 
-  `tvos`  | `watchos` | `ios` | `iphone` | `ipad` | `ipadpro` 
+  **** `iphone` | `ipad` | `ipadpro` 
 
   `iphone4` (320/480) | `iphone5` (320/568) | `iphone6 ` (375/667) | `iphone6plus` (414/736) 
 

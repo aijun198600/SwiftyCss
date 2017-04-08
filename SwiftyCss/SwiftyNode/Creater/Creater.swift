@@ -1,3 +1,5 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import UIKit
 import SwiftyBox
@@ -11,10 +13,6 @@ extension Node {
     }
     
     public static func create(lines: [String], default def: String) -> [NodeProtocol]? {
-    
-        #if DEBUG
-            Node.debug.begin(tag: "create")
-        #endif
         
         var res:[NodeProtocol] = []
         
@@ -23,7 +21,7 @@ extension Node {
         var parent_stack = [NodeProtocol]()
         
         for line in lines {
-            guard let m = NodeSyntaxRe.match(line), var text = m[2] else{
+            guard let m = NodeSyntaxRe.match(line), let text = m[2] else{
                 continue
             }
             let nodes = _create(selector: text , default: def)
@@ -59,10 +57,6 @@ extension Node {
             }
             parent_stack.append(nodes.last!)
         }
-        
-        #if DEBUG
-            Node.debug.end(tag: "create", { Node.describing(res, deep: true) })
-        #endif
         
         return res.isEmpty ? nil : res
     }
@@ -112,11 +106,11 @@ extension Node {
         guard let node = type?.init() as? NodeProtocol else {
             fatalError( "[SwiftyNode Creater Error] Cant init \"\(bundleName!).\(tag)\" class \(String(describing: type))" )
         }
-        if node.nodeStyle.tag.isEmpty == true {
-            _ = node.nodeStyle.lazySet(key: "tag", value: tag)
+        if node.styler.tag.isEmpty == true {
+            _ = node.styler.lazySet(key: "tag", value: tag)
         }
-        _ = node.nodeStyle.lazySet(key: "id", value: id)
-        _ = node.nodeStyle.lazySet(key: "class", value: clas?.joined(separator: " "))
+        _ = node.styler.lazySet(key: "id", value: id)
+        _ = node.styler.lazySet(key: "class", value: clas?.joined(separator: " "))
         if attributes != nil {
             for attr in attributes! {
                 if let kv = attr.components(separatedBy: "=", atAfter: 0, trim: .whitespacesAndNewlines) {

@@ -1,3 +1,5 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import Foundation
 import SwiftyBox
@@ -20,14 +22,14 @@ extension Node {
         }
         
         
-        public typealias CallBack = (Style) -> Void
+        public typealias CallBack = (Styler) -> Void
         
         private class _Data {
-            weak var target: Style?
+            weak var target: Styler?
             var callback: CallBack?
             var active = true
             
-            init(style: Style, callback: CallBack?) {
+            init(style: Styler, callback: CallBack?) {
                 self.target = style
                 self.callback = callback
             }
@@ -47,7 +49,7 @@ extension Node {
             }
         }
         
-        public static func add(style: Style, _ callback: CallBack? = nil) {
+        public static func add(style: Styler, _ callback: CallBack? = nil) {
             if _cache[ style.hash ] != nil {
                 if callback != nil {
                     _cache[style.hash]!.callback = callback
@@ -71,7 +73,7 @@ extension Node {
             }
         }
         
-        public static func remove(style: Style, keepCallback: Bool = false) {
+        public static func remove(style: Styler, keepCallback: Bool = false) {
             if _cache[ style.hash ] != nil {
                 if keepCallback == false || _cache[style.hash]?.callback == nil {
                     _cache[style.hash] = nil
@@ -90,7 +92,7 @@ extension Node {
                 if data.target != nil {
                     if data.active {
                         #if DEBUG
-                            Node.debug.log(tag: "ticker", queue == nil ? "sync" : "async", _id, data.target?.status, data.target)
+                        Node.debug.log(tag: "ticker", queue == nil ? "sync" : "async", _id, data.target?.status, data.target)
                         #endif
                         data.target!.listenStatus(mark: "ticker\(_id)")
                     }

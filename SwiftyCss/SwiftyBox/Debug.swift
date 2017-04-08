@@ -1,3 +1,5 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import Foundation
 import QuartzCore
@@ -146,9 +148,7 @@ public class Debug {
     }
     
     private final func echo(_ text: String) {
-        #if DEBUG
-            print( text )
-        #endif
+        print( text )
         if self.output != nil {
             self.queue?.async {
                 if let f = FileHandle(forWritingAtPath: self.output! ) {

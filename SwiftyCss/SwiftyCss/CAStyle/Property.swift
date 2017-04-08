@@ -1,3 +1,6 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
+
 #if os(iOS) || os(tvOS)
     import UIKit
 #endif
@@ -5,7 +8,7 @@ import QuartzCore
 import SwiftyNode
 import SwiftyBox
 
-extension CAStyle {
+extension CAStyler {
     
     // 随父的大小改变而改变
     
@@ -24,8 +27,8 @@ extension CAStyle {
         return false
     }
     
-    static func clearProperty(_ style: CAStyle, _ name: String) {
-        guard let layer = style.layer else {
+    static func clearProperty(_ styler: CAStyler, _ name: String) {
+        guard let layer = styler.layer else {
             return
         }
         switch name {
@@ -55,21 +58,21 @@ extension CAStyle {
             layer.shadowOpacity = 0
             
         case "width", "height":
-            if !style.hooks.isEmpty {
-                style.setStatus( .checkHookChild )
+            if !styler.hooks.isEmpty {
+                styler.setStatus( .checkHookChild )
             }
             
         case "margin", "marginTop", "marginRight", "marginBottom", "marginLeft":
-            style.margin = name == "margin" ? (0, 0, 0, 0) : style.parseMargin(name: name, value: "0")
-            layer.superlayer?.cssStyle.setStatus( .rankFloatChild )
+            styler.margin = name == "margin" ? (0, 0, 0, 0) : styler.parseMargin(name: name, value: "0")
+            layer.superlayer?.cssStyler.setStatus( .rankFloatChild )
             
         case "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft":
-            style.padding = name == "padding" ? (0, 0, 0, 0) : style.parsePadding(name: name, value: "0")
-            style.setStatus( .rankFloatChild )
+            styler.padding = name == "padding" ? (0, 0, 0, 0) : styler.parsePadding(name: name, value: "0")
+            styler.setStatus( .rankFloatChild )
             
         case "border", "borderTop", "borderRight", "borderBottom", "borderLeft":
-            style.border = name == "border" ? nil : style.parseBorder(name: name, value: "none")
-            style.setStatus( .checkBorder )
+            styler.border = name == "border" ? nil : styler.parseBorder(name: name, value: "none")
+            styler.setStatus( .checkBorder )
             
         default:
             break
@@ -77,24 +80,24 @@ extension CAStyle {
         
     }
     
-    static func setProperty(_ style: CAStyle, _ source: [String: String], _ available: [String: String]) {
-        guard let layer = style.layer else {
+    static func setProperty(_ styler: CAStyler, _ source: [String: String], _ available: [String: String]) {
+        guard let layer = styler.layer else {
             return
         }
-        let isfloat = style.property["float"] != nil
-        if style.property["transform"] != nil{
+        let isfloat = styler.property["float"] != nil
+        if styler.property["transform"] != nil{
             layer.transform = CATransform3DMakeTranslation(0, 0, 0)
         }
         
         // frame
-        let frame = parsePropertyToFrame(style, isfloat, available)
+        let frame = parsePropertyToFrame(styler, isfloat, available)
         if frame != layer.frame {
             if frame.size != layer.frame.size {
                 if isfloat {
-                    layer.superlayer?.cssStyle.setStatus( .rankFloatChild )
+                    layer.superlayer?.cssStyler.setStatus( .rankFloatChild )
                 }
-                if !style.hooks.isEmpty {
-                    style.setStatus( .checkHookChild )
+                if !styler.hooks.isEmpty {
+                    styler.setStatus( .checkHookChild )
                 }
             }
             if isfloat {
@@ -108,10 +111,10 @@ extension CAStyle {
         for (name, value) in available {
             switch name {
             case "float":
-                layer.superlayer?.cssStyle.setStatus( .rankFloatChild )
+                layer.superlayer?.cssStyler.setStatus( .rankFloatChild )
                 
             case "position":
-                if let list = style.parseValues(value, limit: 2, percentOf: [".width", ".height"]) {
+                if let list = styler.parseValues(value, limit: 2, percentOf: [".width", ".height"]) {
                     layer.position = CGPoint(x: list[0], y: list[1])
                 }
                 
@@ -133,33 +136,33 @@ extension CAStyle {
                 layer.zPosition = CGFloat(value) ?? 1
                 
             case "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft":
-                let padding = style.parsePadding(name: name, value: value)
-                if style.padding != padding {
-                    style.padding = padding
+                let padding = styler.parsePadding(name: name, value: value)
+                if styler.padding != padding {
+                    styler.padding = padding
                     if isfloat {
-                        style.setStatus( .rankFloatChild )
+                        styler.setStatus( .rankFloatChild )
                     }
                 }
                 
             case "margin", "marginTop", "marginRight", "marginBottom", "marginLeft":
-                let margin = style.parsePadding(name: name, value: value)
-                if style.margin != margin {
-                    style.margin = margin
+                let margin = styler.parsePadding(name: name, value: value)
+                if styler.margin != margin {
+                    styler.margin = margin
                     if isfloat {
-                        layer.superlayer?.cssStyle.setStatus( .rankFloatChild )
+                        layer.superlayer?.cssStyler.setStatus( .rankFloatChild )
                     }
                 }
                 
             case "anchorPoint":
-                if let list = style.parseValues(value, limit: 2, percentOf: ["width", "height"]) {
+                if let list = styler.parseValues(value, limit: 2, percentOf: ["width", "height"]) {
                     let point = CGPoint(x: list[0], y: list[1])
                     layer.anchorPoint = point.x < 0 ? point : CGPoint(x: point.x/layer.frame.width, y: point.y/layer.frame.height )
                 }
             
             // Style
             case "border", "borderTop", "borderRight", "borderBottom", "borderLeft":
-                style.border = style.parseBorder(name: name, value: value)
-                style.setStatus( .checkBorder )
+                styler.border = styler.parseBorder(name: name, value: value)
+                styler.setStatus( .checkBorder )
                 
             case "opacity":
                 layer.opacity = Float(value) ?? 1
@@ -181,7 +184,7 @@ extension CAStyle {
                 }
                 
             case "radius":
-                layer.cornerRadius = style.parseValue(value, percentOf: "width") ?? 0
+                layer.cornerRadius = styler.parseValue(value, percentOf: "width") ?? 0
                 
             // shadow
             case "shadow":
@@ -193,7 +196,7 @@ extension CAStyle {
                     layer.shadowOpacity = 1
                 }
             case "shadowOffset":
-                if let list = style.parseValues(value) {
+                if let list = styler.parseValues(value) {
                     if list.count == 2 {
                         layer.shadowOffset = CGSize(width: list[0], height:list[1])
                     }
@@ -238,8 +241,8 @@ extension CAStyle {
                         text_layer.foregroundColor = Color(value)
                         continue
                     }
-                    if style.property["autoSize"] != nil {
-                        style.setStatus( .checkSize )
+                    if styler.property["autoSize"] != nil {
+                        styler.setStatus( .checkSize )
                     }
                     break
                 }
@@ -280,8 +283,8 @@ extension CAStyle {
                             }
                             continue
                         }
-                        if style.property["autoSize"] != nil {
-                            style.setStatus( .checkSize )
+                        if styler.property["autoSize"] != nil {
+                            styler.setStatus( .checkSize )
                         }
                     }
                 #endif
@@ -292,23 +295,23 @@ extension CAStyle {
                 while let m = TRANSFORM_LEXER.match(value, offset: offset) {
                     switch m[1]! {
                     case "perspective":
-                        trans.m34 = -1 / (style.parseValue(m[2]) ?? 1)
+                        trans.m34 = -1 / (styler.parseValue(m[2]) ?? 1)
                     case "translate":
-                        if let v = style.parseValues(m[2], percentOf: ["width", "height", "width"]) {
+                        if let v = styler.parseValues(m[2], percentOf: ["width", "height", "width"]) {
                             let x = v.count > 0 ? v[0] : 0
                             let y = v.count > 1 ? v[1] : 0
                             let z = v.count > 2 ? v[2] : 0
                             trans = CATransform3DTranslate(trans, x, y, z)
                         }
                     case "scale":
-                        if let v = style.parseValues(m[2], percentOf: ["width", "height", "width"]) {
+                        if let v = styler.parseValues(m[2], percentOf: ["width", "height", "width"]) {
                             let x = v.count > 0 ? v[0] : 1
                             let y = v.count > 1 ? v[1] : x
                             let z = v.count > 2 ? v[2] : 1
                             trans = CATransform3DScale(trans, x, y, z)
                         }
                     case "rotate":
-                        if let v = style.parseValues(m[2]) {
+                        if let v = styler.parseValues(m[2]) {
                             let a = v[0] * CGFloat.pi / 180.0
                             if v.count == 1 {
                                 trans = CATransform3DRotate(trans, a, 0, 0, v[0] > 0 ? 1 : -1)
@@ -335,8 +338,8 @@ extension CAStyle {
 
     }
     
-    private static func parsePropertyToFrame(_ style: CAStyle, _ isfloat: Bool, _ target: [String: String]) -> CGRect {
-        let layer = style.layer!
+    private static func parsePropertyToFrame(_ styler: CAStyler, _ isfloat: Bool, _ target: [String: String]) -> CGRect {
+        let layer = styler.layer!
         var frame = layer.frame
         var isfloat = isfloat
         var width_changed  = false
@@ -361,16 +364,16 @@ extension CAStyle {
         }
         if width_changed {
             if isfloat {
-                frame.size.width = style.getValue(name: "width", min: "minWidth", max: "maxWidth", def: 0, percentOf: ".width")
+                frame.size.width = styler.getValue(name: "width", min: "minWidth", max: "maxWidth", def: 0, percentOf: ".width")
             }else{
-                let left  = style.getValue(name: "left", percentOf: ".width")
-                let right = style.getValue(name: "right", percentOf: ".width")
+                let left  = styler.getValue(name: "left", percentOf: ".width")
+                let right = styler.getValue(name: "right", percentOf: ".width")
                 
                 if left != nil && right != nil {
                     frame.size.width = (layer.superlayer?.bounds.size.width ?? 0) - left! - right!
                     frame.origin.x = left!
                 }else {
-                    frame.size.width = style.getValue(name: "width", min: "minWidth", max: "maxWidth", def: frame.width, percentOf: ".width")
+                    frame.size.width = styler.getValue(name: "width", min: "minWidth", max: "maxWidth", def: frame.width, percentOf: ".width")
                     if left != nil {
                         frame.origin.x = left!
                     }else if right != nil {
@@ -381,15 +384,15 @@ extension CAStyle {
         }
         if height_changed {
             if isfloat {
-                frame.size.height = style.getValue(name: "height", min: "minHeight", max: "maxHeight", def: 0, percentOf: ".height")
+                frame.size.height = styler.getValue(name: "height", min: "minHeight", max: "maxHeight", def: 0, percentOf: ".height")
             }else{
-                let top    = style.getValue(name: "top", percentOf: ".height")
-                let bottom = style.getValue(name: "bottom", percentOf: ".height")
+                let top    = styler.getValue(name: "top", percentOf: ".height")
+                let bottom = styler.getValue(name: "bottom", percentOf: ".height")
                 if top != nil && bottom != nil {
                     frame.size.height = (layer.superlayer?.bounds.size.height ?? 0) - top! - bottom!
                     frame.origin.y    = top!
                 }else{
-                    frame.size.height = style.getValue(name: "height", min: "minHeight", max: "maxHeight", def: frame.height, percentOf: ".height")
+                    frame.size.height = styler.getValue(name: "height", min: "minHeight", max: "maxHeight", def: frame.height, percentOf: ".height")
                     if top != nil {
                         frame.origin.y = top!
                     }else if bottom != nil {

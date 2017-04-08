@@ -1,4 +1,5 @@
-
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import CoreGraphics
 import SwiftyNode
@@ -40,8 +41,11 @@ public class Css {
             inited = true
             Node.registe(atRule: "@media", parser: Css.MediaRule)
             Node.registe(atRule: "@if", parser: Css.IfRule)
-            Node.debug.define(tag: "root-refresh", template: "⏱ Css refresh root used time %ms: %")
-            Node.debug.define(tag: "listen", template: "👂 Css listen %: % 🚥 % 🚥 %")
+            #if DEBUG
+            Node.debug.define(tag: "begin", template: "⏱ Css refresh root used time %ms: %")
+            Node.debug.define(tag: "listen", template: "👂 Css listen %: % 🚥 %")
+            Node.debug.define(tag: "insert", template: "📌 Css insert (%ms):\n    %\n")
+            #endif
         }
     }
 
@@ -54,11 +58,11 @@ public class Css {
         }
     }
 
-    public static func load(_ text: String) {
+    public static func load(_ text: String...) {
         if inited == false {
             Css.ready()
         }
-        styleSheet.parse(text: text)
+        styleSheet.parse(text: text.joined(separator: "\n"))
     }
     
     public static func refresh(_ node: NodeProtocol, debug: Bool = false) {
@@ -67,16 +71,16 @@ public class Css {
         }
         Css.styleSheet.refrehs()
         #if DEBUG
-            Node.debug.begin(tag: "root-refresh")
+        Node.debug.begin(tag: "begin")
         #endif
-        node.nodeStyle.refresh(all: true, passive: true)
+        node.styler.refresh(all: true, passive: true)
         #if DEBUG
-            Node.debug.end(tag: "root-refresh", node.nodeStyle)
+        Node.debug.end(tag: "begin", node.styler)
         #endif
     }
 
     public static func debugPrint(_ node: NodeProtocol, noprint: Bool = false) -> String {
-        var text = node.nodeStyle.description //?? "<\(String(describing: type(of:node)))>"
+        var text = node.styler.description //?? "<\(String(describing: type(of:node)))>"
         if node.childNodes.count > 0 {
             for n in node.childNodes {
                 text += "\n    " + debugPrint(n, noprint: true).replacingOccurrences(of: "\n", with: "\n    ")

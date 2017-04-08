@@ -1,3 +1,6 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
+
 #if os(iOS) || os(tvOS)
     import UIKit
 #endif
@@ -5,7 +8,7 @@ import QuartzCore
 import SwiftyNode
 import SwiftyBox
 
-extension CAStyle {
+extension CAStyler {
     
     final func getValue(attribute name: String) -> Any? {
         guard let layer = self.layer else {

@@ -1,0 +1,10 @@
+framework module SwiftyCss {
+  umbrella header "SwiftyCss.h"
+
+  export *
+  module * { export * }
+}
+
+module SwiftyCss.Swift {
+    header "SwiftyCss-Swift.h"
+}

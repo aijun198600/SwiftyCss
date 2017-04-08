@@ -1,10 +1,12 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import Foundation
 import SwiftyBox
 
 extension Node {
 
-    open class Style: CustomStringConvertible {
+    open class Styler: CustomStringConvertible {
         
         // MARK: - Public
         public let hash: Int
@@ -105,7 +107,7 @@ extension Node {
                 _ = self.setProperty( [key: value] )
             
             }
-//            , .checkFloatParent
+            
             return !self.status.contains(.lazy) && self.hasStatus(.checkAll, .needRefresh, .checkChild, .checkBorder, .checkSize, .checkHookChild, .rankFloatChild)
         }
         
@@ -122,7 +124,7 @@ extension Node {
                     }
                     self.clearProperty(name)
                 }
-                _ = self.setProperty(list)
+                self.setProperty(list)
             }
             self.listenStatus( mark: "refresh" )
         }
@@ -160,7 +162,10 @@ extension Node {
         }
         
         open func listenStatus(mark: String = "unkonw") {
-            if self._checkStatus(mark: mark) {
+            if self._checkStatus() {
+                #if DEBUG
+                Node.debug.log(tag: "status", mark, self.status, self)
+                #endif
                 self.status = .none
             }
         }
@@ -232,22 +237,16 @@ extension Node {
             return list.isEmpty ? nil : list
         }
         
-        public final func _checkStatus(mark: String) -> Bool {
+        public final func _checkStatus() -> Bool {
             Ticker.remove(style: self, keepCallback: true)
             if status.contains(.lazy) {
                 return false
             }
             if status.contains( .needRefresh ) {
-                #if DEBUG
-                    Node.debug.log(tag: "status", mark, "needRefresh", self)
-                #endif
                 status = .none
                 self.refresh()
                 return false
-            }else if self.hasStatus(.checkAll, .checkChild, .checkBorder, .checkSize, .checkHookChild, .rankFloatChild) { // , .checkFloatParent
-                #if DEBUG
-                    Node.debug.log(tag: "status", mark, self.status, self)
-                #endif
+            }else if self.hasStatus(.checkAll, .checkChild, .checkBorder, .checkSize, .checkHookChild, .rankFloatChild) {
                 return true
             }else{
                 status = .none

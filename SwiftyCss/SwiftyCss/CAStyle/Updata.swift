@@ -1,3 +1,5 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 #if os(iOS) || os(tvOS)
     import UIKit
@@ -6,10 +8,10 @@ import QuartzCore
 import SwiftyNode
 import SwiftyBox
 
-extension CAStyle {
+extension CAStyler {
     
-    static func updataFloatLayer(_ parent_style: CAStyle, _ chilren: [CALayer]? = nil){
-        guard let parent = parent_style.layer else {
+    static func updataFloatLayer(_ parent_styler: CAStyler, _ chilren: [CALayer]? = nil){
+        guard let parent = parent_styler.layer else {
             return
         }
         guard let chilren = chilren ?? getChildren(parent, float: true) else {
@@ -21,7 +23,7 @@ extension CAStyle {
             if child.isHidden {
                 continue
             }
-            if let type = child.nodeStyle.property["float"] {
+            if let type = child.cssStyler.property["float"] {
                 if types[type] == nil {
                     types[type] = [CALayer]()
                 }
@@ -30,19 +32,19 @@ extension CAStyle {
         }
         
         let box         = parent.frame.size
-        let box_padding = parent_style.padding
+        let box_padding = parent_styler.padding
         
         for (type, children) in types {
             for i in 0 ..< children.count {
                 let child = children[i]
-                let child_style = child.cssStyle
-                if child_style.disable {
+                let child_styler = child.cssStyler
+                if child_styler.disable {
                     continue
                 }
                 
                 var point        = CGPoint.zero
                 let block        = child.frame.size
-                let block_margin = child_style.margin
+                let block_margin = child_styler.margin
                 
                 if type == "center" {
                     point.x = (box.width - (block.width + block_margin.left + block_margin.right) )/2
@@ -62,7 +64,7 @@ extension CAStyle {
                     }
                 }else {
                     let prev = children[i-1].frame
-                    let prev_margin = children[i-1].cssStyle.margin
+                    let prev_margin = children[i-1].cssStyler.margin
                     switch type {
                     case "top":
                         point.x = box_padding.left + block_margin.left
@@ -89,21 +91,21 @@ extension CAStyle {
                     }
                 }
                 if child.frame.origin != point {
-                    child_style.animateBegin()
+                    child_styler.animateBegin()
                     child.frame.origin = point
-                    child_style.animateCommit()
+                    child_styler.animateCommit()
                 }
             }
         }
         
-        if let align = parent_style.property["align"], let children = types["auto"] {
-            updateAlign(parent_style, align, children)
+        if let align = parent_styler.property["align"], let children = types["auto"] {
+            updateAlign(parent_styler, align, children)
         }
         
     }
     
-    static func updateAlign(_ style: CAStyle, _ align: String, _ children: [CALayer]) {
-        guard let box = style.layer?.frame.size else {
+    static func updateAlign(_ styler: CAStyler, _ align: String, _ children: [CALayer]) {
+        guard let box = styler.layer?.frame.size else {
             return
         }
         let side = getContentSide(children)
@@ -136,19 +138,19 @@ extension CAStyle {
         }
         if x != 0 || y != 0 {
             for child in children {
-                child.cssStyle.animateBegin()
+                child.cssStyler.animateBegin()
                 child.frame.origin.x += x
                 child.frame.origin.y += y
-                child.cssStyle.animateCommit()
+                child.cssStyler.animateCommit()
             }
         }
     }
     
-    static func updataAutoSize(_ style: CAStyle) {
-        guard let layer = style.layer else {
+    static func updataAutoSize(_ styler: CAStyler) {
+        guard let layer = styler.layer else {
             return
         }
-        let auto = style.property["autoSize"]
+        let auto = styler.property["autoSize"]
         
         if layer.sublayers == nil {
             
@@ -163,7 +165,7 @@ extension CAStyle {
                     return
                 }
                 if layer.frame.size != text_size {
-                    style.animateBegin()
+                    styler.animateBegin()
                     if auto == "height" {
                         layer.frame.size.height = text_size.height
                     }else if auto == "width" {
@@ -171,7 +173,7 @@ extension CAStyle {
                     }else {
                         layer.frame.size = text_size
                     }
-                    style.animateCommit()
+                    styler.animateCommit()
                 }
             }
             return
@@ -196,7 +198,7 @@ extension CAStyle {
         #endif
         
         if layer.frame.size != size {
-            style.animateBegin()
+            styler.animateBegin()
             if auto == "height" {
                 layer.frame.size.height = size.height
             }else if auto == "width" {
@@ -204,18 +206,18 @@ extension CAStyle {
             }else {
                 layer.frame.size = size
             }
-            style.animateCommit()
+            styler.animateCommit()
         }
     }
     
-    static func updataBorderLayer(_ style: CAStyle) {
-        guard let layer = style.layer else {
+    static func updataBorderLayer(_ styler: CAStyler) {
+        guard let layer = styler.layer else {
             return
         }
-        var border = style.borderLayer
-        guard let data = style.border else {
+        var border = styler.borderLayer
+        guard let data = styler.border else {
             border?.removeFromSuperlayer()
-            style.borderLayer = nil
+            styler.borderLayer = nil
             return
         }
         
@@ -223,7 +225,7 @@ extension CAStyle {
             border = CAShapeLayer(disable: true)
             border!.zPosition = -1
             layer.insertSublayer(border!, at: 0)
-            style.borderLayer = border!
+            styler.borderLayer = border!
             
         }else if border!.sublayers != nil{
             for sub in border!.sublayers! {
@@ -272,13 +274,13 @@ extension CAStyle {
             if child.isHidden {
                 continue
             }
-            let style = child.cssStyle
-            if style.disable {
+            let styler = child.cssStyler
+            if styler.disable {
                 continue
             }
             if float == nil {
                 list.append(child)
-            }else if (style.property["float"] != nil) == float {
+            }else if (styler.property["float"] != nil) == float {
                 list.append(child)
             }
         }
@@ -294,9 +296,9 @@ extension CAStyle {
         for child in contents {
             var m = M
             let f = child.frame
-            let style = child.cssStyle
-            if style.property["float"] != nil {
-                m = style.margin
+            let styler = child.cssStyler
+            if styler.property["float"] != nil {
+                m = styler.margin
             }
             s.top    = min(f.origin.y - m.0, s.top)
             s.bottom = max(f.origin.y + f.height + m.2, s.bottom)

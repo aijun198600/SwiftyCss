@@ -1,3 +1,5 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import UIKit
 import SwiftyNode
@@ -7,12 +9,12 @@ extension UIView: NodeProtocol {
     
     // MARK: - Protocol
     
-    public final var nodeStyle: Node.Style {
-        return layer.nodeStyle
+    public final var styler: Node.Styler {
+        return layer.cssStyler
     }
     
-    public final var cssStyle: CAStyle {
-        return self.layer.cssStyle
+    public final var cssStyler: CAStyler {
+        return layer.cssStyler
     }
     
     open func getAttribute(_ key: String) -> Any? {

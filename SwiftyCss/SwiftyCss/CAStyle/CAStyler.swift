@@ -1,18 +1,20 @@
+//  Created by Wang Liang on 2017/4/8.
+//  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import QuartzCore
 import SwiftyNode
 import SwiftyBox
 
-public class CAStyle: Node.Style {
+public class CAStyler: Node.Styler {
     
-    public static var cache = [Int: Weak<CAStyle>]()
+    public static var cache = [Int: Weak<CAStyler>]()
     
-    static func make(_ layer: CALayer) -> CAStyle {
+    static func make(_ layer: CALayer) -> CAStyler {
         let hash = layer.hash
         if let style = cache[ hash ]?.value {
             return style
         }
-        let style = CAStyle(layer: layer)
+        let style = CAStyler(layer: layer)
         layer.setValue(style, forKey: "_node_style_")
         cache[hash] = Weak(style)
         return style
@@ -39,15 +41,15 @@ public class CAStyle: Node.Style {
     init( layer: CALayer ) {
         self.layer = layer
         super.init(node: layer, styleSheet: Css.styleSheet)
-        layer.addObserver( CAStyle.listener, forKeyPath: "sublayers", options: [], context: nil)
-        layer.addObserver( CAStyle.listener, forKeyPath: "hidden", options: [.new], context: nil)
+        layer.addObserver( CAStyler.listener, forKeyPath: "sublayers", options: [], context: nil)
+        layer.addObserver( CAStyler.listener, forKeyPath: "hidden", options: [.new], context: nil)
     }
     
     deinit {
-        CAStyle.cache[self.hash] = nil
+        CAStyler.cache[self.hash] = nil
     }
     
-     public override final var disable: Bool {
+    public override final var disable: Bool {
         get { return super.disable }
         set {
             guard super.disable != newValue else {
@@ -55,16 +57,16 @@ public class CAStyle: Node.Style {
             }
             super.disable = newValue
             if newValue {
-                layer?.removeObserver(CAStyle.listener, forKeyPath: "sublayers")
-                layer?.removeObserver(CAStyle.listener, forKeyPath: "hidden")
+                layer?.removeObserver(CAStyler.listener, forKeyPath: "sublayers")
+                layer?.removeObserver(CAStyler.listener, forKeyPath: "hidden")
                 if self._listen_bounds {
-                    layer?.removeObserver(CAStyle.listener, forKeyPath: "bounds")
+                    layer?.removeObserver(CAStyler.listener, forKeyPath: "bounds")
                 }
             }else{
-                layer?.addObserver( CAStyle.listener, forKeyPath: "sublayers", options: [], context: nil)
-                layer?.addObserver( CAStyle.listener, forKeyPath: "hidden", options: [.new], context: nil)
+                layer?.addObserver( CAStyler.listener, forKeyPath: "sublayers", options: [], context: nil)
+                layer?.addObserver( CAStyler.listener, forKeyPath: "hidden", options: [.new], context: nil)
                 if self._listen_bounds {
-                    layer?.addObserver(CAStyle.listener, forKeyPath: "bounds", options: [.new, .old], context: nil)
+                    layer?.addObserver(CAStyler.listener, forKeyPath: "bounds", options: [.new, .old], context: nil)
                 }
             }
         }
@@ -77,7 +79,83 @@ public class CAStyle: Node.Style {
         self._refresh(all: all, passive: passive, async: Css._async)
     }
     
-    public final func _refresh(all: Bool = false, passive: Bool = false, async: Bool = false) {
+    public override final func listenStatus(mark: String = "unkonw") {
+        if self._checkStatus() {
+            guard let layer = self.layer else {
+                return
+            }
+            #if DEBUG
+            Node.debug.log(tag: "status", mark, self.status, self)
+            #endif
+            
+            let check_all   = status.contains(.checkAll)
+            let check_child = status.contains(.checkChild)
+            let check_hook  = status.contains(.checkHookChild)
+            let rank_float  = status.contains(.rankFloatChild)
+            
+            if check_all || check_child || rank_float || check_hook {
+                if let sublayers = layer.sublayers {
+                    var float_children = [CALayer]()
+                    for sub in sublayers {
+                        if sub.isHidden {
+                            continue
+                        }
+                        let sub_styler = sub.cssStyler
+                        if sub_styler.disable {
+                            continue
+                        }
+                        if check_all {
+                            sub_styler.refresh(all: true, passive: true)
+                            if Css._async == false {
+                                if sub_styler.property["float"] != nil {
+                                    float_children.append(sub)
+                                }
+                                sub_styler.setStatus(.none)
+                            }
+                            continue
+                        }
+                        if check_child {
+                            sub_styler.refresh(passive: true)
+                            continue
+                        }
+                        if sub_styler.status.contains(.inactive) {
+                            sub_styler._refresh( passive: true )
+                        }else if check_hook {
+                            if self.hooks.contains(sub_styler.hash) {
+                                sub_styler.refresh(passive: true)
+                            }
+                        }
+                        if rank_float && sub_styler.property["float"] != nil {
+                            float_children.append(sub)
+                        }
+                    }
+                    if !float_children.isEmpty {
+                        CAStyler.updataFloatLayer(self, float_children)
+                    }else{
+                        if Css._async {
+                            self.setStatus(.none)
+                            if status.contains(.checkBorder) {
+                                self.setStatus(.checkBorder)
+                            } else if self.property["autoSize"] != nil {
+                                self.setStatus(.checkSize)
+                            }
+                            return
+                        }
+                    }
+                }
+            }
+            if self.property["autoSize"] != nil {
+                CAStyler.updataAutoSize(self)
+            }
+            if status.contains(.checkBorder) || (self.borderLayer != nil && self.borderLayer!.frame != layer.bounds) {
+                CAStyler.updataBorderLayer(self)
+            }
+            self.setStatus(.none)
+        }
+    }
+    
+
+    final func _refresh(all: Bool = false, passive: Bool = false, async: Bool = false) {
         if self.tag.isEmpty {
             if layer!.delegate != nil {
                 _ = self.lazySet(key: "tag", value: String(describing: type(of: layer!.delegate!) ))
@@ -110,77 +188,6 @@ public class CAStyle: Node.Style {
         }
     }
     
-    public override final func listenStatus(mark: String = "unkonw") {
-        if self._checkStatus(mark: mark) {
-            guard let layer = self.layer else {
-                return
-            }
-            let check_all   = status.contains(.checkAll)
-            let check_child = status.contains(.checkChild)
-            let check_hook  = status.contains(.checkHookChild)
-            let rank_float  = status.contains(.rankFloatChild)
-            
-            if check_all || check_child || rank_float || check_hook {
-                if let sublayers = layer.sublayers {
-                    var float_children = [CALayer]()
-                    for sub in sublayers {
-                        if sub.isHidden {
-                            continue
-                        }
-                        let sub_style = sub.cssStyle
-                        if sub_style.disable {
-                            continue
-                        }
-                        if check_all {
-                            sub_style.refresh(all: true, passive: true)
-                            if Css._async == false {
-                                if sub_style.property["float"] != nil {
-                                    float_children.append(sub)
-                                }
-                                sub_style.setStatus(.none)
-                            }
-                            continue
-                        }
-                        if check_child {
-                            sub_style.refresh(passive: true)
-                            continue
-                        }
-                        if sub_style.status.contains(.inactive) {
-                            sub_style._refresh( passive: true )
-                        }else if check_hook {
-                            if self.hooks.contains(sub_style.hash) {
-                                sub_style.refresh(passive: true)
-                            }
-                        }
-                        if rank_float && sub_style.property["float"] != nil {
-                            float_children.append(sub)
-                        }
-                    }
-                    if !float_children.isEmpty {
-                        CAStyle.updataFloatLayer(self, float_children)
-                    }else{
-                        if Css._async {
-                            self.setStatus(.none)
-                            if status.contains(.checkBorder) {
-                                self.setStatus(.checkBorder)
-                            } else if self.property["autoSize"] != nil {
-                                self.setStatus(.checkSize)
-                            }
-                            return
-                        }
-                    }
-                }
-            }
-            if self.property["autoSize"] != nil {
-                CAStyle.updataAutoSize(self)
-            }
-            if status.contains(.checkBorder) || (self.borderLayer != nil && self.borderLayer!.frame != layer.bounds) {
-                CAStyle.updataBorderLayer(self)
-            }
-            self.setStatus(.none)
-        }
-    }
-    
     // MARK: -
     
     public override final func setProperty(_ list: [String: String]) {
@@ -189,13 +196,13 @@ public class CAStyle: Node.Style {
         }
         var available = self._setProperty(list)
         if self._is_follower == false {
-            self._is_follower = CAStyle.hasFollower(property: available)
+            self._is_follower = CAStyler.hasFollower(property: available)
         }
         if self._is_follower {
             if !self._is_hooker {
-                if let parent = self.layer?.superlayer?.cssStyle {
+                if let parent_styler = self.layer?.superlayer?.cssStyler {
                     self._is_hooker = true
-                    parent.hooks.insert( self.hash )
+                    parent_styler.hooks.insert( self.hash )
                 }
             }
             if self.status.contains(.passive) {
@@ -209,20 +216,20 @@ public class CAStyle: Node.Style {
         if self._listen_bounds == false {
             if self.property["float"] != nil || !self.hooks.isEmpty {
                 self._listen_bounds = true
-                self.layer!.addObserver(CAStyle.listener, forKeyPath: "bounds", options: [.new, .old], context: nil)
+                self.layer!.addObserver(CAStyler.listener, forKeyPath: "bounds", options: [.new, .old], context: nil)
             }
         }
         
         self.animateBegin()
         
-        CAStyle.setProperty(self, list, available)
+        CAStyler.setProperty(self, list, available)
         
         self.animateCommit()
     }
         
     public override final func clearProperty(_ name: String) {
         super.clearProperty(name)
-        CAStyle.clearProperty(self, name)
+        CAStyler.clearProperty(self, name)
     }
     
     // MARK: -
@@ -250,11 +257,11 @@ public class CAStyle: Node.Style {
     
     private class Listener: NSObject {
         
-        override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        override final func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
             guard let keyPath = keyPath, let layer = object as? CALayer else {
                 return
             }
-            guard let style = CAStyle.cache[layer.hash]?.value else {
+            guard let style = CAStyler.cache[layer.hash]?.value else {
                 return
             }
             if style.disable || style.hasStatus(.inactive, .lazy, .updating) {
@@ -265,18 +272,12 @@ public class CAStyle: Node.Style {
                 let count = layer.sublayers?.count ?? 0
                 if count > style._sublayer_count {
                     for sub in layer.sublayers! {
-                        if sub.nodeStyle.hasStatus(.inactive) {
-                            sub.nodeStyle.refresh( all:true, passive: true)
-                            #if DEBUG
-                                Node.debug.log(tag: "listen", "add sublayer", style.status, sub.nodeStyle, "checkAll")
-                            #endif
+                        if sub.cssStyler.hasStatus(.inactive) {
+                            sub.cssStyler.refresh( all:true, passive: true)
                         }
                     }
                 }else if count > 0 {
                     style.setStatus( .checkChild )
-                    #if DEBUG
-                        Node.debug.log(tag: "listen", "change sublayer", style.status, style, "checkChild")
-                    #endif
                 }
                 style._sublayer_count = count
                 
@@ -288,15 +289,9 @@ public class CAStyle: Node.Style {
                     return
                 }
                 if style.property["float"] != nil {
-                    layer.superlayer?.cssStyle.setStatus( .rankFloatChild )
-                    #if DEBUG
-                        Node.debug.log(tag: "listen", "bound change", style.status, style, "checkFloatSibling")
-                    #endif
+                    layer.superlayer?.cssStyler.setStatus( .rankFloatChild )
                 }else if !style.hooks.isEmpty {
                     style.setStatus( .checkHookChild )
-                    #if DEBUG
-                        Node.debug.log(tag: "listen", "bound change", style.status, style, "checkHookChild")
-                    #endif
                 }
                 
             case "hidden":
@@ -306,21 +301,18 @@ public class CAStyle: Node.Style {
                 
                 if !hidden {
                     style.setStatus( .needRefresh )
-                    #if DEBUG
-                        Node.debug.log(tag: "listen", "hidden", hidden, style, "refresh")
-                    #endif
                 }else{
                     if style.property["float"] != nil {
-                        layer.superlayer?.cssStyle.setStatus( .rankFloatChild )
-                        #if DEBUG
-                            Node.debug.log(tag: "listen", "hidden", hidden, style, "checkFloatSibling")
-                        #endif
+                        layer.superlayer?.cssStyler.setStatus( .rankFloatChild )
                     }
                 }
                 
             default:
                 break
             }
+            #if DEBUG
+            Node.debug.log(tag: "listen", keyPath, style.status, style)
+            #endif
         }
     
     }
