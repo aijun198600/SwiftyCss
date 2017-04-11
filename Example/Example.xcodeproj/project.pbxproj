@@ -14,6 +14,7 @@
 		7707104E1E8F4021009D9304 /* SwiftyNode.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7707104C1E8F4021009D9304 /* SwiftyNode.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		770710501E8F4021009D9304 /* SwiftyBox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7707104F1E8F4021009D9304 /* SwiftyBox.framework */; };
 		770710511E8F4021009D9304 /* SwiftyBox.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7707104F1E8F4021009D9304 /* SwiftyBox.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		770C87921E9C6FB0002F0D31 /* TestText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 770C87911E9C6FB0002F0D31 /* TestText.swift */; };
 		771832F61E8F4B9500154D59 /* TestStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771832F51E8F4B9500154D59 /* TestStyle.swift */; };
 		772040961E97C44E00A99CF9 /* TestMedia.swift in Sources */ = {isa = PBXBuildFile; fileRef = 772040951E97C44E00A99CF9 /* TestMedia.swift */; };
 		773D3D301E95E06100236D28 /* TestSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 773D3D2F1E95E06100236D28 /* TestSelector.swift */; };
@@ -47,6 +48,7 @@
 		770710491E8F4021009D9304 /* SwiftyCss.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftyCss.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7707104C1E8F4021009D9304 /* SwiftyNode.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftyNode.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7707104F1E8F4021009D9304 /* SwiftyBox.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SwiftyBox.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		770C87911E9C6FB0002F0D31 /* TestText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestText.swift; path = Views/TestText.swift; sourceTree = "<group>"; };
 		771832F51E8F4B9500154D59 /* TestStyle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestStyle.swift; path = Views/TestStyle.swift; sourceTree = "<group>"; };
 		772040951E97C44E00A99CF9 /* TestMedia.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestMedia.swift; path = Views/TestMedia.swift; sourceTree = "<group>"; };
 		773D3D2F1E95E06100236D28 /* TestSelector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestSelector.swift; path = Views/TestSelector.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				773D3D2F1E95E06100236D28 /* TestSelector.swift */,
 				776CFF2C1E979E90000E949F /* TestLayout.swift */,
 				772040951E97C44E00A99CF9 /* TestMedia.swift */,
+				770C87911E9C6FB0002F0D31 /* TestText.swift */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -210,6 +213,7 @@
 				77D579251E8DEE630006F0E6 /* AppDelegate.swift in Sources */,
 				776CFF2B1E97521D000E949F /* TestBasic.swift in Sources */,
 				776CFF2D1E979E90000E949F /* TestLayout.swift in Sources */,
+				770C87921E9C6FB0002F0D31 /* TestText.swift in Sources */,
 				772040961E97C44E00A99CF9 /* TestMedia.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

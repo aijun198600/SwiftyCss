@@ -29,6 +29,9 @@ If you want to view the debug information，run **`carthage update --configurati
 
 #### Example
 
+
+![1](https://raw.githubusercontent.com/wl879/screenshots/master/swiftycss/basic.gif)
+
 style.css
 
 ```css
@@ -41,7 +44,6 @@ style.css
 }
 
 #test-basic .box {background:#aaa;}
-
 ```
 
 AppDelegate.swift
@@ -62,7 +64,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 ```
 ViewController.swift
 ```swift
-class ViewController: CssViewController {
+class ViewController: UIViewController {
 
     override func loadView() {
         super.loadView()
@@ -76,18 +78,21 @@ class ViewController: CssViewController {
             "     CATextLayer[style=float:center;autoSize:auto;fontSize:16;color:#fff;][content=The center of the universe]",
             "UIScrollView.footer > CATextLayer"
         )
-        if let text = self.query(layer: ".footer > CATextLayer")?[0] as? CATextLayer {
+        if let text = view.css(query: ".footer > CATextLayer")?[0] as? CATextLayer {
             text.string = 
             css.joined(separator: "\n") +
             "\n------------------------------------------\n" +
             Css.debugPrint(self.view, noprint: true)
         }
     }
+    
+    override func viewWillLayoutSubviews () {
+        super.viewWillLayoutSubviews()
+        Css.refresh(self.view)
+    }
 
 }
 ```
-
-![1](https://raw.githubusercontent.com/wl879/screenshots/master/swiftycss/basic.gif)
 
 #### Example screenshot
 
@@ -241,7 +246,7 @@ CALayer[float = left] {}
 
   **Support media features**
 
-  **** `iphone` | `ipad` | `ipadpro` 
+  `iphone` | `ipad` | `ipadpro` 
 
   `iphone4` (320/480) | `iphone5` (320/568) | `iphone6 ` (375/667) | `iphone6plus` (414/736) 
 

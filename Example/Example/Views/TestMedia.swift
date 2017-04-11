@@ -14,7 +14,7 @@ class TestMedia: CssViewController {
     override func loadView() {
         super.loadView()
         self.view.backgroundColor = .white
-        
+
         let css = [
             "#test-media {top:0; bottom:40%; width:100%; auto-size:auto;}",
             "#test-media .title {float:top; left:10; right:10; height:20; margin:10 10 0 10; font-size:16; color:#000;}",

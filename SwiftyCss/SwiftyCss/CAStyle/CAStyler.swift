@@ -46,7 +46,11 @@ public class CAStyler: Node.Styler {
     }
     
     deinit {
+        layer?.removeObserver(CAStyler.listener, forKeyPath: "sublayers")
+        layer?.removeObserver(CAStyler.listener, forKeyPath: "hidden")
+        layer?.removeObserver(CAStyler.listener, forKeyPath: "bounds")
         CAStyler.cache[self.hash] = nil
+        
     }
     
     public override final var disable: Bool {

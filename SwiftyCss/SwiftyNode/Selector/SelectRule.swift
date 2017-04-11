@@ -9,7 +9,7 @@ extension Node {
     class SelectRule: CustomStringConvertible {
         
         private static let _lexer = Re(
-            "(^|[#.])([\\w\\-]+)|" +
+            "(^|[#.&])([\\w\\-]+)|" +
             "(\\[)((?:\\[[^\\]]*\\]|[^\\]])*)\\]|" +
             "(::|:)([\\w\\-]+)(?:\\(([^)]*)\\))?|" +
             "([>+~*])"
@@ -17,6 +17,7 @@ extension Node {
         
         // MARK: -
         
+        let hash        :Int?
         let tag         :String?
         let id          :String?
         let clas        :Set<String>
@@ -27,6 +28,7 @@ extension Node {
         public let description :String
         
         init(_ text: String, forCreate: Bool) {
+            var hash:Int?          = nil
             var tag:String?        = nil
             var id:String?         = nil
             var clas:Set<String>   = []
@@ -34,6 +36,8 @@ extension Node {
             var combinator:String? = nil
             var conditions:[Node.Expression] = []
             var attributes:[String] = []
+            
+            
             
             var offset = 0
             while let m = SelectRule._lexer.match(text, offset: offset) {
@@ -43,6 +47,8 @@ extension Node {
                     combinator = m[8]!
                 case "#":
                     id = m[2]!
+                case "&":
+                    hash = Int(m[2]!)
                 case ".":
                     clas.insert(m[2]!)
                 case "::", ":":
@@ -59,7 +65,7 @@ extension Node {
                     tag = m[2]!
                 }
             }
-            
+            self.hash       = hash
             self.tag        = tag
             self.id         = id
             self.clas       = clas
@@ -69,6 +75,9 @@ extension Node {
             self.attributes = attributes.isEmpty ? nil : attributes
             
             var desc = (self.combinator ?? "") + (self.tag ?? "")
+            if self.hash != nil {
+                desc += "&" + self.hash!.description
+            }
             if self.id != nil {
                 desc += "#" + self.id!
             }
@@ -93,6 +102,9 @@ extension Node {
         
         public final func check(_ node: NodeProtocol, nonPseudo: Bool = false ) -> Bool {
             let styler = node.styler
+            if self.hash != nil {
+                return self.hash == node.hash
+            }
             guard self.tag == nil || self.tag == "*" || self.tag == styler.tag else {
                 return false
             }

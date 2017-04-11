@@ -79,6 +79,12 @@ extension UIView: NodeProtocol {
         self.layer.css(removeClass: clas)
     }
     
+    public final func css(rules: String...) {
+        for r in rules {
+            self.layer.css(rules: r)
+        }
+    }
+    
     public final func css(value name: String) -> Any? {
         return self.layer.css(value: name)
     }

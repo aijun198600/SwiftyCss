@@ -236,7 +236,6 @@ extension CAStyler {
                         }
                     case "fontName":
                         text_layer.font = CTFontCreateWithName(value as CFString, text_layer.fontSize,  nil)
-                            //CGFont(value as CFString)
                     default:
                         text_layer.foregroundColor = Color(value)
                         continue

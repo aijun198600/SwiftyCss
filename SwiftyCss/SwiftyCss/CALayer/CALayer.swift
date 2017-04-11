@@ -94,6 +94,15 @@ extension CALayer: NodeProtocol {
         }
     }
     
+    public final func css(rules: String...) {
+        let prefix = "&" + self.hash.description
+        var text = ""
+        for r in rules {
+            text += prefix + " " + r + "\n"
+        }
+        Css.styleSheet.parse(text: text)
+    }
+    
     public final func css(value name: String) -> Any? {
         return self.cssStyler.getValue(attribute: name)
     }

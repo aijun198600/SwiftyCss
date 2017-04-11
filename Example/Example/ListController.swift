@@ -18,14 +18,13 @@ class ListViewController: UITableViewController {
         ("Layout", TestLayout.self),
         ("Selector", TestSelector.self),
         ("Media", TestMedia.self),
-        ("Text", TestBasic.self)
+        ("Text", TestText.self)
     ]
     
     override func loadView() {
         super.loadView()
         self.title = "Examples"
         self.view.backgroundColor = .white
-        
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SwiftyCss.Examples")
     }
     
