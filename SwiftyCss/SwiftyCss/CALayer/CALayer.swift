@@ -1,12 +1,19 @@
 //  Created by Wang Liang on 2017/4/8.
 //  Copyright © 2017年 Wang Liang. All rights reserved.
 
-import QuartzCore
+import UIKit
 import SwiftyNode
 import SwiftyBox
 
 extension Css {
-    static var nonActions:[String : CAAction] = ["position" : NSNull(), "bounds" : NSNull(), "path" : NSNull(), "opacity":NSNull(), "origin":NSNull()]
+    static var nonActions:[String : CAAction] = [
+        "position"        : NSNull(),
+        "bounds"          : NSNull(),
+        "path"            : NSNull(),
+        "opacity"         : NSNull(),
+        "origin"          : NSNull(),
+        "backgroundColor" : NSNull()
+    ]
 }
 
 extension CALayer: NodeProtocol {
@@ -19,15 +26,33 @@ extension CALayer: NodeProtocol {
     }
     
     open func getAttribute(_ key: String) -> Any? {
-        return self.cssStyler.getValue(attribute: key)
+        return self.cssStyler.getValue(attribute: key) ?? self.value(forKey:key)
     }
     
     open func setAttribute(_ key: String, value: Any?) {
         if key == "action" {
             self.actions = Bool(string: value) ? nil : Css.nonActions
-        }else if value is String {
-            self.cssStyler.set(key: key, value: value as! String)
+            return
         }
+        if let value = value as? String {
+            switch key {
+            case "content", "string", "text":
+                if let text_layer = self as? CATextLayer {
+                    text_layer.string = value.replacingOccurrences(of: "\\n", with: "\n")
+                    return
+                }
+                if let label = self.delegate as? UILabel {
+                    label.text = value.replacingOccurrences(of: "\\n", with: "\n")
+                    return
+                }
+            case "disable", "id", "tag", "class", "removeClass", "addClass", "style":
+                self.cssStyler.set(key: key, value: value)
+                return
+            default:
+                break
+            }
+        }
+        self.setValue(value, forKey: key)
     }
 
     open var childNodes: [NodeProtocol] {
@@ -98,7 +123,13 @@ extension CALayer: NodeProtocol {
         let prefix = "&" + self.hash.description
         var text = ""
         for r in rules {
-            text += prefix + " " + r + "\n"
+            if r.hasPrefix(":") || r.hasPrefix("[") {
+                text += prefix + r + "\n"
+            }else if r.hasPrefix("<") {
+                text += prefix + r.slice(start: 1) + "\n"
+            }else{
+                text += prefix + " " + r + "\n"
+            }
         }
         Css.styleSheet.parse(text: text)
     }

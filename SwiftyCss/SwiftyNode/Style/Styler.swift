@@ -93,16 +93,12 @@ extension Node {
                 return false
                 
             case "style":
-                var temp = [String: String]()
-                for str in value.components(separatedBy: ";", trim: .whitespacesAndNewlines) {
-                    let item = str.components(separatedBy: ":", trim: .whitespacesAndNewlines)
-                    if item.count == 2 {
-                        temp[item[0]] = item[1]
-                        self.source[item[0]] = item[1]
+                if let ref = StyleSheet.split(text: value) {
+                    for (k, v) in ref {
+                        self.source[k] = v
                     }
+                    _ = self.setProperty(ref)
                 }
-                _ = self.setProperty(temp)
-                
             default:
                 _ = self.setProperty( [key: value] )
             
@@ -219,22 +215,32 @@ extension Node {
             self.status.remove( .inactive )
             self.setStatus( .updating )
             
-            var list = [String: String]()
+            var low = [String: String]()
+            var high = [String: String]()
             let matched = styleSheet!.match(node: master!)
             if matched != nil {
                 for rule in matched! {
-                    for (k, v) in rule.property {
-                        list[k] = v
+                    if rule.selector.rules.last?.hash != nil || rule.selector.rules.last?.conditions != nil || rule.selector.rules.last?.pseudo != nil {
+                        for (k, v) in rule.property {
+                            high[k] = v
+                        }
+                    }else{
+                        for (k, v) in rule.property {
+                            low[k] = v
+                        }
                     }
                 }
             }
             for (k, v) in self.source {
-                list[k] = v
+                low[k] = v
+            }
+            for (k, v) in high {
+                low[k] = v
             }
             #if DEBUG
                 Node.debug.end(tag: "refresh", self, self.status, matched)
             #endif
-            return list.isEmpty ? nil : list
+            return low.isEmpty ? nil : low
         }
         
         public final func _checkStatus() -> Bool {
@@ -292,7 +298,7 @@ extension Node {
             }
             return text
         }
-    
+        
     }
     
 }

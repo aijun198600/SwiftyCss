@@ -19,6 +19,7 @@ extension Node {
         private var _rulesById    = [String: [Int]]()
         private var _rulesByTag   = [String: [Int]]()
         private var _rulesByClass = [String: [Int]]()
+        private var _rulesByHash  = [Int: [Int]]()
         private var _atRuleCache:[Int: Bool]? = nil
         
         public init(){}
@@ -70,6 +71,9 @@ extension Node {
             let styler = node.styler
             var indexs = Set<Int>()
             
+            if _rulesByHash[styler.hash] != nil {
+                indexs.formUnion( _rulesByHash[ styler.hash ]! )
+            }
             if _rulesById[ styler.id ] != nil {
                 indexs.formUnion( _rulesById[ styler.id ]! )
             }
@@ -119,15 +123,19 @@ extension Node {
             return nil
         }
         
+        // MARK: -
+        
         private final func _parse(_ text: String, atRule: AtRule?) {
             for item in text.components(separatedBy: "}", trim: .whitespacesAndNewlines) {
                 let temp = item.components(separatedBy: "{", trim: .whitespacesAndNewlines)
                 guard temp.count == 2 else {
                     continue
                 }
-                let value = StyleSheet._camel_lexer.replace(temp[1], {m in return m[1]!.uppercased()})
+                guard let property = StyleSheet.split(text: temp[1]) else {
+                    continue
+                }
                 for sel in temp[0].components(separatedBy: ",", trim: .whitespacesAndNewlines) {
-                    self._add(rule: StyleRule(selector: sel, property: value, atRule: atRule) )
+                    self._add(rule: StyleRule(selector: sel, property: property, atRule: atRule) )
                 }
             }
         }
@@ -137,11 +145,23 @@ extension Node {
                 return
             }
             
+            for i in (0 ..< _rules.count).reversed() {
+                if _rules[i].description == rule.description {
+                    _rules[i].sortIndex = _rules.count
+                    return
+                }
+            }
+            
             let index = _rules.count
             rule.sortIndex = index
             _rules.append( rule )
             
-            if let name = key.id {
+            if let name = key.hash {
+                if _rulesByHash[name] == nil {
+                    _rulesByHash[name] = []
+                }
+                _rulesByHash[name]!.append(index)
+            }else if let name = key.id {
                 if _rulesById[name] == nil {
                     _rulesById[name] = []
                 }
@@ -194,6 +214,20 @@ extension Node {
                 return a.sortIndex < b.sortIndex
             }
             return a.sortPriority < b.sortPriority
+        }
+        
+        public static func split( text: String ) -> [String: String]? {
+            var res = [String: String]()
+            let text = StyleSheet._camel_lexer.replace(text, {m in return m[1]!.uppercased()})
+            for g in text.components(separatedBy: ";", trim: .whitespacesAndNewlines) {
+                let kv = g.components(separatedBy: ":", trim: .whitespacesAndNewlines)
+                if kv.count == 2 {
+                    res[kv[0]] = kv[1]
+                }else{
+                    return nil
+                }
+            }
+            return res.isEmpty ? nil : res
         }
         
     }

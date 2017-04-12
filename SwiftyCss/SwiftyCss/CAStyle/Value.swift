@@ -1,10 +1,7 @@
 //  Created by Wang Liang on 2017/4/8.
 //  Copyright © 2017年 Wang Liang. All rights reserved.
 
-#if os(iOS) || os(tvOS)
-    import UIKit
-#endif
-import QuartzCore
+import UIKit
 import SwiftyNode
 import SwiftyBox
 
@@ -19,17 +16,9 @@ extension CAStyler {
         }
         switch name {
         case "screenWidth":
-            #if os(iOS) || os(tvOS)
-                return UIScreen.main.bounds.width
-            #else
-                return nil
-            #endif
+            return UIScreen.main.bounds.width
         case "screenHeight":
-            #if os(iOS) || os(tvOS)
-                return UIScreen.main.bounds.height
-            #else
-                return nil
-            #endif
+            return UIScreen.main.bounds.height
         case "id":
             return self.id
         case "class":

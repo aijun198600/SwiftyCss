@@ -1,10 +1,7 @@
 //  Created by Wang Liang on 2017/4/8.
 //  Copyright © 2017年 Wang Liang. All rights reserved.
 
-#if os(iOS) || os(tvOS)
-    import UIKit
-#endif
-import QuartzCore
+import UIKit
 import SwiftyNode
 import SwiftyBox
 
@@ -182,20 +179,19 @@ extension CAStyler {
         let side = getContentSide( layer.sublayers! )
         let size = CGSize(width: side.right, height: side.bottom)
         
-        #if os(iOS) || os(tvOS)
-            if let sc = layer.delegate as? UIScrollView {
-                if sc.contentSize != size {
-                    if auto == "height" {
-                        sc.contentSize.height = size.height
-                    }else if auto == "width" {
-                        sc.contentSize.width = size.width
-                    }else {
-                        sc.contentSize = size
-                    }
+        
+        if let sc = layer.delegate as? UIScrollView {
+            if sc.contentSize != size {
+                if auto == "height" {
+                    sc.contentSize.height = size.height
+                }else if auto == "width" {
+                    sc.contentSize.width = size.width
+                }else {
+                    sc.contentSize = size
                 }
-                return
             }
-        #endif
+            return
+        }
         
         if layer.frame.size != size {
             styler.animateBegin()

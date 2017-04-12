@@ -221,7 +221,7 @@ CALayer[float = left] {}
 
   > **! Need to import the debug version**
 
-  `@debug all, refresh, status, load, ticker, at-rule, begin, listen, insert`
+  `@debug all, refresh, status, load, ticker, at-rule, usetime, listen, insert`
 
    enable debug mode, this will print parse messages.
 

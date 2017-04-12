@@ -84,6 +84,12 @@ extension Node {
             if exp == "(" {
                 return self._parseGoupe(&i, node)
             }
+            if exp == "true" {
+                return true
+            }
+            if exp == "false" {
+                return false
+            }
             if exp.hasPrefix("\"") {
                 return exp[1, -1]
             }
@@ -157,7 +163,7 @@ extension Node {
         }
         
         private final func _parseOperation (_ left: Any?, _ oper: String, _ right: Any?) -> Any? {
-            if left == nil || right == nil {
+            guard let left = left, let right = right else{
                 return nil
             }
             switch oper {
@@ -185,18 +191,23 @@ extension Node {
                 }
                 
             case "=", "!=", "==":
-                guard left is NSObject && right is NSObject else {
+                guard let left = (left as? CustomStringConvertible)?.description, let right = (right as? CustomStringConvertible)?.description else {
                     return nil
                 }
-                let ref = (left as! NSObject).hashValue == (left as! NSObject).hashValue
+                var ref = false
+                if right == "true" {
+                    ref = !(left == "0" || left == "false" || left.isEmpty)
+                }else if right == "false" {
+                    ref = left == "0" || left == "false" || left.isEmpty
+                }else{
+                    ref = left == right
+                }
                 return (oper == "!=" ? !ref : ref) ? true : nil
                 
             case "~=", "|=", "^=", "$=", "*=":
-                guard left is String && right is String else {
+                guard let l = left as? String, let r = right as? String else {
                     return nil
                 }
-                let l = left as! String
-                let r = left as! String
                 switch oper {
                 case "|=", "^=":
                     return  l.hasPrefix(r) ? true : nil

@@ -37,8 +37,6 @@ extension Node {
             var conditions:[Node.Expression] = []
             var attributes:[String] = []
             
-            
-            
             var offset = 0
             while let m = SelectRule._lexer.match(text, offset: offset) {
                 offset = m.lastIndex + 1
@@ -102,8 +100,8 @@ extension Node {
         
         public final func check(_ node: NodeProtocol, nonPseudo: Bool = false ) -> Bool {
             let styler = node.styler
-            if self.hash != nil {
-                return self.hash == node.hash
+            guard self.hash == nil || self.hash == node.hash else {
+                return false
             }
             guard self.tag == nil || self.tag == "*" || self.tag == styler.tag else {
                 return false

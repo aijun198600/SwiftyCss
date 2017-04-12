@@ -1,5 +1,5 @@
 @lazy true
-@debug root-refresh
+@debug usetime
 
 .body {top:64; bottom:40%; width:100%;}
 .footer {bottom:0; width:100%; height:40%; background:#333; auto-size: auto}

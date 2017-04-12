@@ -41,6 +41,13 @@ public class CAStyler: Node.Styler {
     init( layer: CALayer ) {
         self.layer = layer
         super.init(node: layer, styleSheet: Css.styleSheet)
+        
+        if layer.delegate != nil {
+            _ = self.lazySet(key: "tag", value: String(describing: type(of: layer.delegate!) ))
+        }else{
+            _ = self.lazySet(key: "tag", value: String(describing: type(of: layer) ))
+        }
+        
         layer.addObserver( CAStyler.listener, forKeyPath: "sublayers", options: [], context: nil)
         layer.addObserver( CAStyler.listener, forKeyPath: "hidden", options: [.new], context: nil)
     }
@@ -160,13 +167,6 @@ public class CAStyler: Node.Styler {
     
 
     final func _refresh(all: Bool = false, passive: Bool = false, async: Bool = false) {
-        if self.tag.isEmpty {
-            if layer!.delegate != nil {
-                _ = self.lazySet(key: "tag", value: String(describing: type(of: layer!.delegate!) ))
-            }else{
-                _ = self.lazySet(key: "tag", value: String(describing: type(of: layer!) ))
-            }
-        }
         if all == false && passive == false && status.contains(.lazy) {
             return
         }

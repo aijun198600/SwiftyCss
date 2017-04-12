@@ -4,18 +4,17 @@
 import Foundation
 import QuartzCore
 
-public class Debug {
+public class Debug: CustomStringConvertible {
     
     public var timeTotal: Float = 0
     public var output: String? = nil
     public var send: String? = nil
     
     private var value     : UInt = 0
-    private var map       = [Int : (UInt, String)]()
+    private var map       = [String : (UInt, String)]()
     private var timestamp = [Int: [TimeInterval]]()
     private var queue: DispatchQueue? = nil
     
-
     public var async: Bool {
         get { return self.queue != nil }
         set {
@@ -37,10 +36,10 @@ public class Debug {
     
     public final func define(tag: String, template: String, file: String = #file, line: Int = #line) {
         let hash = tag.hashValue
-        if self.map[hash] != nil {
+        if self.map[tag] != nil {
             fatalError( Debug._format(template: "✕ SwiftyBox.Debgu define tag % already exist: %file, line %line", contents: [tag], usetime: 0, file: file, method: "", line: line) )
         }
-        self.map[hash] =  (UInt(1 << (map.count+1)), template)
+        self.map[tag] =  (UInt(1 << (map.count+1)), template)
         self.timestamp[hash] = []
     }
     
@@ -52,7 +51,7 @@ public class Debug {
                     value += v.0
                 }
                 return
-            }else if let v = map[g.hashValue] {
+            }else if let v = map[g] {
                 if value & v.0 != v.0 {
                     value += v.0
                 }
@@ -61,7 +60,7 @@ public class Debug {
     }
     
     public final func enabled(_ tag: String) -> Bool {
-        if let v = map[tag.hashValue] {
+        if let v = map[tag] {
             if value & v.0 == v.0 {
                 return true
             }
@@ -97,7 +96,7 @@ public class Debug {
             usetime = Float(Int((CACurrentMediaTime() - timestamp[hash]!.removeLast())*100000))/100
         }
         timeTotal += usetime
-        let tmp = map[hash]!.1
+        let tmp = map[tag]!.1
         if self.async {
             self.queue?.async {
                 self.echo( Debug._format(template: tmp, contents: contents, usetime: usetime, file: file, method: method, line: line) )
@@ -111,7 +110,7 @@ public class Debug {
         guard self.enabled(tag) else {
             return
         }
-        let tmp = map[tag.hashValue]!.1
+        let tmp = map[tag]!.1
         if self.async {
             self.queue?.async {
                 self.echo( Debug._format(template: tmp, contents: contents, usetime: 0, file: file, method: method, line: line) )
@@ -161,6 +160,16 @@ public class Debug {
         if self.send != nil {
             // TODO: send to server
         }
+    }
+    
+    public final var description: String {
+        var names = [String]()
+        for (name, conf) in map {
+            if value & conf.0 == conf.0 {
+                names.append(name)
+            }
+        }
+        return "<SwiftyBox.Debug Enabel: \(names.joined(separator:", "))>"
     }
     
     // MARK: -

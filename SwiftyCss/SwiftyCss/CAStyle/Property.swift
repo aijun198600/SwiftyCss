@@ -1,10 +1,7 @@
 //  Created by Wang Liang on 2017/4/8.
 //  Copyright © 2017年 Wang Liang. All rights reserved.
 
-#if os(iOS) || os(tvOS)
-    import UIKit
-#endif
-import QuartzCore
+import UIKit
 import SwiftyNode
 import SwiftyBox
 
@@ -243,50 +240,46 @@ extension CAStyler {
                     if styler.property["autoSize"] != nil {
                         styler.setStatus( .checkSize )
                     }
-                    break
-                }
-                
-                #if os(iOS) || os(tvOS)
-                    if let label = layer.delegate as? UILabel {
-                        switch name {
-                            
-                        case "wordWrap":
-                            label.lineBreakMode = NSLineBreakMode.byWordWrapping
-                            label.numberOfLines = 0
-                            
-                        case "content":
-                            label.text = value.replacingOccurrences(of: "\\n", with: "\n")
-                            
-                        case "textAlign":
-                            switch value {
-                            case "right":
-                                label.textAlignment = .right
-                            case "center":
-                                label.textAlignment = .center
-                            case "natural":
-                                label.textAlignment = .natural
-                            case "justified":
-                                label.textAlignment = .justified
-                            default:
-                                label.textAlignment = .left
-                            }
-                        case "fontSize":
-                            if let size = CGFloat(value) {
-                                label.font = label.font.withSize(size)
-                            }
-                        case "fontName":
-                            label.font = UIFont(name: value, size: label.font.pointSize)
+                    
+                }else if let label = layer.delegate as? UILabel {
+                    switch name {
+                        
+                    case "wordWrap":
+                        label.lineBreakMode = NSLineBreakMode.byWordWrapping
+                        label.numberOfLines = 0
+                        
+                    case "content":
+                        label.text = value.replacingOccurrences(of: "\\n", with: "\n")
+                        
+                    case "textAlign":
+                        switch value {
+                        case "right":
+                            label.textAlignment = .right
+                        case "center":
+                            label.textAlignment = .center
+                        case "natural":
+                            label.textAlignment = .natural
+                        case "justified":
+                            label.textAlignment = .justified
                         default:
-                            if let color = Color(value) {
-                                label.textColor = UIColor(cgColor: color)
-                            }
-                            continue
+                            label.textAlignment = .left
                         }
-                        if styler.property["autoSize"] != nil {
-                            styler.setStatus( .checkSize )
+                    case "fontSize":
+                        if let size = CGFloat(value) {
+                            label.font = label.font.withSize(size)
                         }
+                    case "fontName":
+                        label.font = UIFont(name: value, size: label.font.pointSize)
+                    default:
+                        if let color = Color(value) {
+                            label.textColor = UIColor(cgColor: color)
+                        }
+                        continue
                     }
-                #endif
+                    if styler.property["autoSize"] != nil {
+                        styler.setStatus( .checkSize )
+                    }
+                }
                 
             case "transform":
                 var offset = 0

@@ -42,7 +42,7 @@ public class Css {
             Node.registe(atRule: "@media", parser: Css.MediaRule)
             Node.registe(atRule: "@if", parser: Css.IfRule)
             #if DEBUG
-            Node.debug.define(tag: "begin", template: "⏱ Css refresh root used time %ms: %")
+            Node.debug.define(tag: "usetime", template: "⏱ Css refresh root used time %ms: %")
             Node.debug.define(tag: "listen", template: "👂 Css listen %: % 🚥 %")
             Node.debug.define(tag: "insert", template: "📌 Css insert (%ms):\n    %\n")
             #endif
@@ -65,17 +65,17 @@ public class Css {
         styleSheet.parse(text: text.joined(separator: "\n"))
     }
     
-    public static func refresh(_ node: NodeProtocol, debug: Bool = false) {
+    public static func refresh(_ node: NodeProtocol) {
         if inited == false {
             Css.ready()
         }
         Css.styleSheet.refrehs()
         #if DEBUG
-        Node.debug.begin(tag: "begin")
+        Node.debug.begin(tag: "usetime")
         #endif
         node.styler.refresh(all: true, passive: true)
         #if DEBUG
-        Node.debug.end(tag: "begin", node.styler)
+        Node.debug.end(tag: "usetime", node.styler)
         #endif
     }
 

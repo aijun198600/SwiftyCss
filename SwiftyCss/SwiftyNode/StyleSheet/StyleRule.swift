@@ -14,19 +14,11 @@ extension Node {
         public let atRule   : Node.AtRule?
         public let selector : Node.Select
         public let property : [String: String]
+        public let description: String
         
-        init(selector: String, property text: String, atRule: Node.AtRule? = nil) {
+        init(selector: String, property: [String: String], atRule: Node.AtRule? = nil) {
             self.atRule   = atRule
             self.selector = Node.Select(selector)
-            
-            var property = [String: String]()
-            
-            for value in text.components(separatedBy: ";", trim: .whitespacesAndNewlines) {
-                let key_value = value.components(separatedBy: ":", trim: .whitespacesAndNewlines)
-                if key_value.count == 2{
-                    property[key_value[0]] = key_value[1]
-                }
-            }
             self.property = property
             
             if let last = self.selector.rules.last {
@@ -40,13 +32,7 @@ extension Node {
             }else{
                 self.sortPriority = 0
             }
-        }
-        
-        public final func check(node: NodeProtocol) -> Bool {
-            return self.selector.check(node)
-        }
-        
-        public var description: String {
+            
             var text = ""
             if self.atRule != nil {
                 text += self.atRule!.description + " "
@@ -57,9 +43,14 @@ extension Node {
                 text += k + ":" + v + "; "
             }
             text += "}"
-            return text
+            self.description = text
+            
         }
         
+        public final func check(node: NodeProtocol) -> Bool {
+            return self.selector.check(node)
+        }
+                
     }
     
 }
