@@ -37,12 +37,7 @@ extension CALayer: NodeProtocol {
         if let value = value as? String {
             switch key {
             case "content", "string", "text":
-                if let text_layer = self as? CATextLayer {
-                    text_layer.string = value.replacingOccurrences(of: "\\n", with: "\n")
-                    return
-                }
-                if let label = self.delegate as? UILabel {
-                    label.text = value.replacingOccurrences(of: "\\n", with: "\n")
+                if CAStyler.setTextProperty(self.cssStyler, key: "content", value: value) {
                     return
                 }
             case "disable", "id", "tag", "class", "removeClass", "addClass", "style":

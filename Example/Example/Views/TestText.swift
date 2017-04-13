@@ -38,6 +38,18 @@ class TestText: CssViewController {
             " CATextLayer.title[content=font-name:Noteworthy-Bold]",
             " CALayer.block",
             "     CATextLayer.box[style=fontSize:20;color:#fff;autoSize:auto;fontName:Noteworthy-Bold][content=Abcd]",
+            
+            " CATextLayer.title[content=UILabel]",
+            " UIView.block",
+            "     UILabel.box[style=fontSize:20;color:#fff;autoSize:auto;][content=Abcd]",
+            
+            " CATextLayer.title[content=UITextField]",
+            " UIView.block",
+            "     UITextField.box.a1[style=fontSize:20;color:#fff;autoSize:auto;][content=Abcd]",
+            
+            " CATextLayer.title[content=UITextView]",
+            " UIView.block",
+            "     UITextView.box.a2[style=fontSize:20;color:#fff;autoSize:auto;][content=Abcd]",
 
                       
             "UIScrollView.footer > CATextLayer",

@@ -87,7 +87,7 @@ extension CAStyler {
         }
         
         // frame
-        let frame = parsePropertyToFrame(styler, isfloat, available)
+        let frame = parseFrameProperty(styler, isfloat, available)
         if frame != layer.frame {
             if frame.size != layer.frame.size {
                 if isfloat {
@@ -205,82 +205,6 @@ extension CAStyler {
             case "shadowColor":
                 layer.shadowColor   = Color(value)
                 
-            // Text
-            case "content", "textAlign", "fontSize", "fontName", "color", "wordWrap":
-                if let text_layer = layer as? CATextLayer {
-                    switch name {
-                    case "wordWrap":
-                        text_layer.isWrapped = value == "true"
-                    case "content":
-                        text_layer.string = value.replacingOccurrences(of: "\\n", with: "\n")
-                    case "textAlign":
-                        switch value {
-                        case "right":
-                            text_layer.alignmentMode = kCAAlignmentRight
-                        case "center":
-                            text_layer.alignmentMode = kCAAlignmentCenter
-                        case "natural":
-                            text_layer.alignmentMode = kCAAlignmentNatural
-                        case "justified":
-                            text_layer.alignmentMode = kCAAlignmentJustified
-                        default:
-                            text_layer.alignmentMode = kCAAlignmentLeft
-                        }
-                    case "fontSize":
-                        text_layer.contentsScale = UIScreen.main.scale
-                        if let size = CGFloat(value) {
-                            text_layer.fontSize = size
-                        }
-                    case "fontName":
-                        text_layer.font = CTFontCreateWithName(value as CFString, text_layer.fontSize,  nil)
-                    default:
-                        text_layer.foregroundColor = Color(value)
-                        continue
-                    }
-                    if styler.property["autoSize"] != nil {
-                        styler.setStatus( .checkSize )
-                    }
-                    
-                }else if let label = layer.delegate as? UILabel {
-                    switch name {
-                        
-                    case "wordWrap":
-                        label.lineBreakMode = NSLineBreakMode.byWordWrapping
-                        label.numberOfLines = 0
-                        
-                    case "content":
-                        label.text = value.replacingOccurrences(of: "\\n", with: "\n")
-                        
-                    case "textAlign":
-                        switch value {
-                        case "right":
-                            label.textAlignment = .right
-                        case "center":
-                            label.textAlignment = .center
-                        case "natural":
-                            label.textAlignment = .natural
-                        case "justified":
-                            label.textAlignment = .justified
-                        default:
-                            label.textAlignment = .left
-                        }
-                    case "fontSize":
-                        if let size = CGFloat(value) {
-                            label.font = label.font.withSize(size)
-                        }
-                    case "fontName":
-                        label.font = UIFont(name: value, size: label.font.pointSize)
-                    default:
-                        if let color = Color(value) {
-                            label.textColor = UIColor(cgColor: color)
-                        }
-                        continue
-                    }
-                    if styler.property["autoSize"] != nil {
-                        styler.setStatus( .checkSize )
-                    }
-                }
-                
             case "transform":
                 var offset = 0
                 var trans = CATransform3DMakeTranslation(0, 0, 0)
@@ -321,6 +245,9 @@ extension CAStyler {
                 }
                 layer.transform = trans
                 
+            // Text
+            case "content", "textAlign", "fontSize", "fontName", "color", "wordWrap":
+                _ = setTextProperty(styler, key: name, value: value)
             default:
                 break
             }
@@ -330,7 +257,151 @@ extension CAStyler {
 
     }
     
-    private static func parsePropertyToFrame(_ styler: CAStyler, _ isfloat: Bool, _ target: [String: String]) -> CGRect {
+    static func setTextProperty(_ styler: CAStyler, key: String, value: String) -> Bool {
+        guard let layer = styler.layer else {
+            return false
+        }
+        
+        if let text_layer = layer as? CATextLayer {
+            text_layer.contentsScale = UIScreen.main.scale
+            switch key {
+            case "wordWrap":
+                text_layer.isWrapped = value == "true"
+            case "content":
+                text_layer.string = value.replacingOccurrences(of: "\\n", with: "\n")
+            case "textAlign":
+                switch value {
+                case "right":
+                    text_layer.alignmentMode = kCAAlignmentRight
+                case "center":
+                    text_layer.alignmentMode = kCAAlignmentCenter
+                case "natural":
+                    text_layer.alignmentMode = kCAAlignmentNatural
+                case "justified":
+                    text_layer.alignmentMode = kCAAlignmentJustified
+                default:
+                    text_layer.alignmentMode = kCAAlignmentLeft
+                }
+            case "fontSize":
+                if let size = CGFloat(value) {
+                    text_layer.fontSize = size
+                }
+            case "fontName":
+                text_layer.font = CTFontCreateWithName(value as CFString, text_layer.fontSize,  nil)
+            case "color":
+                text_layer.foregroundColor = Color(value)
+                return true
+            default:
+                return false
+            }
+        }else if let label = layer.delegate as? UILabel {
+            switch key {
+            case "wordWrap":
+                label.lineBreakMode = NSLineBreakMode.byWordWrapping
+                label.numberOfLines = 0
+                
+            case "content":
+                label.text = value.replacingOccurrences(of: "\\n", with: "\n")
+                
+            case "textAlign":
+                switch value {
+                case "right":
+                    label.textAlignment = .right
+                case "center":
+                    label.textAlignment = .center
+                case "natural":
+                    label.textAlignment = .natural
+                case "justified":
+                    label.textAlignment = .justified
+                default:
+                    label.textAlignment = .left
+                }
+            case "fontSize":
+                if let size = CGFloat(value) {
+                    label.font = label.font.withSize(size)
+                }
+            case "fontName":
+                label.font = UIFont(name: value, size: label.font.pointSize)
+            case "color":
+                if let color = Color(value) {
+                    label.textColor = UIColor(cgColor: color)
+                }
+                return true
+            default:
+                return false
+            }
+        }else if let field = layer.delegate as? UITextField {
+            switch key {
+            case "content":
+                field.text = value.replacingOccurrences(of: "\\n", with: "\n")
+            case "textAlign":
+                switch value {
+                case "right":
+                    field.textAlignment = .right
+                case "center":
+                    field.textAlignment = .center
+                case "natural":
+                    field.textAlignment = .natural
+                case "justified":
+                    field.textAlignment = .justified
+                default:
+                    field.textAlignment = .left
+                }
+            case "fontSize":
+                if let size = CGFloat(value) {
+                    field.font = field.font?.withSize(size) ?? UIFont.systemFont(ofSize: size)
+                }
+            case "fontName":
+                field.font = UIFont(name: value, size: field.font?.pointSize ?? CGFloat(styler.property["fontSize"]) ?? 17 )
+            case "color":
+                if let color = Color(value) {
+                    field.textColor = UIColor(cgColor: color)
+                }
+                return true
+            default:
+                return false
+            }
+        }else if let view = layer.delegate as? UITextView {
+            switch key {
+            case "content":
+                view.text = value.replacingOccurrences(of: "\\n", with: "\n")
+            case "textAlign":
+                switch value {
+                case "right":
+                    view.textAlignment = .right
+                case "center":
+                    view.textAlignment = .center
+                case "natural":
+                    view.textAlignment = .natural
+                case "justified":
+                    view.textAlignment = .justified
+                default:
+                    view.textAlignment = .left
+                }
+            case "fontSize":
+                if let size = CGFloat(value) {
+                    view.font = view.font?.withSize(size) ?? UIFont.systemFont(ofSize: size)
+                }
+            case "fontName":
+                view.font = UIFont(name: value, size: view.font?.pointSize ?? CGFloat(styler.property["fontSize"]) ?? 17 )
+            case "color":
+                if let color = Color(value) {
+                    view.textColor = UIColor(cgColor: color)
+                }
+                return true
+            default:
+                return false
+            }
+        }else{
+            return false
+        }
+        if styler.property["autoSize"] != nil {
+            styler.setStatus( .checkSize )
+        }
+        return true
+    }
+    
+    private static func parseFrameProperty(_ styler: CAStyler, _ isfloat: Bool, _ target: [String: String]) -> CGRect {
         let layer = styler.layer!
         var frame = layer.frame
         var isfloat = isfloat

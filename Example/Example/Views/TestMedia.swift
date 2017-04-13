@@ -26,6 +26,12 @@ class TestMedia: CssViewController {
             "}",
             "@media orientation:portrait     {",
             "#test-media .title {content: media = portrait}",
+            "}",
+            "@media ipad {",
+            "#media-text {content:Thist is iPad}",
+            "}",
+            "@media iphone {",
+            "#media-text {content:Thist is iPhone}",
             "}"
         ]
         
@@ -34,13 +40,16 @@ class TestMedia: CssViewController {
         self.view.css(insert:
             "UIScrollView#test-media",
                       
-            " CATextLayer.title",
-            " CALayer.block",
+            "   CATextLayer.title",
+            "   CALayer.block",
             "     CALayer.box",
             "     CALayer.box",
             "     CALayer.box",
             "     CALayer.box",
             "     CALayer.box",
+            
+            "   CALayer.block",
+            "     CATextLayer#media-text[style=float:center;autoSize:auto;fontSize:16;color:#f00;]",
             
             "UIScrollView.footer > CATextLayer",
             ""

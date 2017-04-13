@@ -148,20 +148,74 @@ extension CAStyler {
             return
         }
         let auto = styler.property["autoSize"]
+        var content: String?
+        var font: UIFont?
+        var view: UIView?
         
-        if layer.sublayers == nil {
+        if let ref = layer as? CATextLayer {
+            content = ref.string as? String
+            guard let font_name = CTFontCopyName(ref.font as! CTFont, kCTFontPostScriptNameKey) else {
+                return
+            }
+            font = UIFont(name: font_name as String, size:  ref.fontSize)
+        }else if let ref = layer.delegate as? UILabel {
+            view    = ref
+            content = ref.text
+            font    = ref.font
+        }else if let ref = layer.delegate as? UITextField {
+            view    = ref
+            content = ref.text
+            font    = ref.font
+        }else if let ref = layer.delegate as? UITextView {
+            view    = ref
+            content = ref.text
+            font    = ref.font
+        }else {
             
-            if let text_layer = layer as? CATextLayer {
-                guard let content = text_layer.string as? String else {
-                    return
+            let side = getContentSide( layer.sublayers! )
+            let size = CGSize(width: side.right, height: side.bottom)
+            
+            if let ref = layer.delegate as? UIScrollView {
+                if ref.contentSize != size {
+                    if auto == "height" {
+                        ref.contentSize.height = size.height
+                    }else if auto == "width" {
+                        ref.contentSize.width = size.width
+                    }else {
+                        ref.contentSize = size
+                    }
                 }
-                let limit_width  = auto == "height" ? text_layer.frame.width : .greatestFiniteMagnitude
-                let limit_height = auto == "width" ? text_layer.frame.height : .greatestFiniteMagnitude
-                
-                guard let text_size = String.size(content, font: text_layer.font as! CTFont, size: text_layer.fontSize, limitWidth:limit_width, limitHeight:limit_height) else {
-                    return
+                return
+            }
+            if layer.frame.size != size {
+                styler.animateBegin()
+                if auto == "height" {
+                    layer.frame.size.height = size.height
+                }else if auto == "width" {
+                    layer.frame.size.width = size.width
+                }else {
+                    layer.frame.size = size
                 }
-                if layer.frame.size != text_size {
+                styler.animateCommit()
+            }
+            return
+        }
+        
+        if content != nil && font != nil {
+            let frame = layer.frame
+            let w = auto == "height" ? frame.width : .greatestFiniteMagnitude
+            let h = auto == "width" ? frame.height : .greatestFiniteMagnitude
+            let text_size = String.size(content!, font: font!, size:font!.pointSize, limitWidth: w, limitHeight: h)
+            if frame.size != text_size {
+                if view != nil {
+                    if auto == "height" {
+                        view!.frame.size.height = text_size.height
+                    }else if auto == "width" {
+                        view!.frame.size.width = text_size.width
+                    }else {
+                        view!.frame.size = text_size
+                    }
+                }else{
                     styler.animateBegin()
                     if auto == "height" {
                         layer.frame.size.height = text_size.height
@@ -173,37 +227,8 @@ extension CAStyler {
                     styler.animateCommit()
                 }
             }
-            return
         }
         
-        let side = getContentSide( layer.sublayers! )
-        let size = CGSize(width: side.right, height: side.bottom)
-        
-        
-        if let sc = layer.delegate as? UIScrollView {
-            if sc.contentSize != size {
-                if auto == "height" {
-                    sc.contentSize.height = size.height
-                }else if auto == "width" {
-                    sc.contentSize.width = size.width
-                }else {
-                    sc.contentSize = size
-                }
-            }
-            return
-        }
-        
-        if layer.frame.size != size {
-            styler.animateBegin()
-            if auto == "height" {
-                layer.frame.size.height = size.height
-            }else if auto == "width" {
-                layer.frame.size.width = size.width
-            }else {
-                layer.frame.size = size
-            }
-            styler.animateCommit()
-        }
     }
     
     static func updataBorderLayer(_ styler: CAStyler) {
