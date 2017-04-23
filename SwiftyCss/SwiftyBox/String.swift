@@ -2,9 +2,7 @@
 //  Copyright © 2017年 Wang Liang. All rights reserved.
 
 import Foundation
-#if os(iOS) || os(tvOS)
-    import UIKit
-#endif
+
 
 extension String {
     
@@ -134,7 +132,12 @@ extension String {
         return nil
     }
     
-    #if os(iOS) || os(tvOS)
+}
+
+#if os(iOS) || os(tvOS)
+import UIKit
+    
+extension String {
     
     public static func size(_ str: String, font: UIFont, size: CGFloat? = nil, limitWidth width: CGFloat = .greatestFiniteMagnitude, limitHeight height: CGFloat = .greatestFiniteMagnitude) -> CGSize {
         var font = font
@@ -160,7 +163,5 @@ extension String {
         return nil
     }
     
-    #endif
-    
-    
 }
+#endif

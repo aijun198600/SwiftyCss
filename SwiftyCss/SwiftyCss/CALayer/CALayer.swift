@@ -166,7 +166,11 @@ extension CALayer: NodeProtocol {
     
     public final func cssRefresh() {
         Css.styleSheet.refrehs()
-        self.cssStyler.refresh()
+        if self.cssStyler.status.contains(.inactive) {
+            self.cssStyler.refresh(all: true)
+        }else{
+            self.cssStyler.refresh()
+        }
     }
 
 }

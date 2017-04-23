@@ -36,6 +36,10 @@ public class WeakArray <Element: AnyObject> {
         return nil
     }
     
+    public final func insert(_ element: Element, at: Int) {
+        self.list.insert( Weak( element ), at: at)
+    }
+    
     public final func append(_ element: Element) {
         list.append( Weak( element ) )
     }

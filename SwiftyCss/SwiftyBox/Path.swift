@@ -134,6 +134,8 @@ public class Path {
         return ref.count > 0 ? ref : nil
     }
     
+    // MARK: -
+    
     private static func ls(path: String, wildcard: Re?, all: Bool) -> [String]? {
         var isDir = ObjCBool(false)
         if FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {

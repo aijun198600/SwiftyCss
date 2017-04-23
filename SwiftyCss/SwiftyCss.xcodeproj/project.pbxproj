@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		77293CA41EAB93AA0007B150 /* TimeLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77293CA31EAB93AA0007B150 /* TimeLink.swift */; };
 		774B0A4B1E90B23700E4CDDE /* Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 774B0A4A1E90B23700E4CDDE /* Debug.swift */; };
 		77D579121E8DEE2C0006F0E6 /* SwiftyCss.h in Headers */ = {isa = PBXBuildFile; fileRef = 77D579101E8DEE2C0006F0E6 /* SwiftyCss.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		77D579461E8DEFD50006F0E6 /* SwiftyNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 77D579441E8DEFD50006F0E6 /* SwiftyNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -39,13 +40,13 @@
 		77D579941E8DF0E40006F0E6 /* UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5798A1E8DF0E40006F0E6 /* UIView.swift */; };
 		77D579951E8DF0E40006F0E6 /* Css.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5798B1E8DF0E40006F0E6 /* Css.swift */; };
 		77D579961E8DF0E40006F0E6 /* MediaRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5798C1E8DF0E40006F0E6 /* MediaRule.swift */; };
-		77D579971E8DF0E40006F0E6 /* TimeLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77D5798D1E8DF0E40006F0E6 /* TimeLink.swift */; };
 		77D579981E8DF17D0006F0E6 /* SwiftyBox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77D5794F1E8DEFEA0006F0E6 /* SwiftyBox.framework */; };
 		77D579991E8DF1810006F0E6 /* SwiftyNode.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77D579421E8DEFD50006F0E6 /* SwiftyNode.framework */; };
 		77D5799A1E8DF1890006F0E6 /* SwiftyBox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77D5794F1E8DEFEA0006F0E6 /* SwiftyBox.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		77293CA31EAB93AA0007B150 /* TimeLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeLink.swift; sourceTree = "<group>"; };
 		774B0A4A1E90B23700E4CDDE /* Debug.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Debug.swift; sourceTree = "<group>"; };
 		77D5790D1E8DEE2C0006F0E6 /* SwiftyCss.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftyCss.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		77D579101E8DEE2C0006F0E6 /* SwiftyCss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwiftyCss.h; sourceTree = "<group>"; };
@@ -84,7 +85,6 @@
 		77D5798A1E8DF0E40006F0E6 /* UIView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIView.swift; sourceTree = "<group>"; };
 		77D5798B1E8DF0E40006F0E6 /* Css.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Css.swift; sourceTree = "<group>"; };
 		77D5798C1E8DF0E40006F0E6 /* MediaRule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaRule.swift; sourceTree = "<group>"; };
-		77D5798D1E8DF0E40006F0E6 /* TimeLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeLink.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,7 +143,7 @@
 				77D579881E8DF0E40006F0E6 /* UIView */,
 				77D5798B1E8DF0E40006F0E6 /* Css.swift */,
 				77D5798C1E8DF0E40006F0E6 /* MediaRule.swift */,
-				77D5798D1E8DF0E40006F0E6 /* TimeLink.swift */,
+				77293CA31EAB93AA0007B150 /* TimeLink.swift */,
 				77D579101E8DEE2C0006F0E6 /* SwiftyCss.h */,
 				77D579111E8DEE2C0006F0E6 /* Info.plist */,
 			);
@@ -409,6 +409,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				77293CA41EAB93AA0007B150 /* TimeLink.swift in Sources */,
 				77D5798F1E8DF0E40006F0E6 /* CAStyler.swift in Sources */,
 				77D579921E8DF0E40006F0E6 /* Value.swift in Sources */,
 				77D579901E8DF0E40006F0E6 /* Property.swift in Sources */,
@@ -418,7 +419,6 @@
 				77D579941E8DF0E40006F0E6 /* UIView.swift in Sources */,
 				77D579951E8DF0E40006F0E6 /* Css.swift in Sources */,
 				77D579961E8DF0E40006F0E6 /* MediaRule.swift in Sources */,
-				77D579971E8DF0E40006F0E6 /* TimeLink.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

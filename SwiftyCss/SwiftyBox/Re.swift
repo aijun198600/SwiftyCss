@@ -4,6 +4,7 @@
 import Foundation
 
 public class Re {
+    
     private static let symbol  = Re("([()\\[\\]?{}.*$^!\\+]|^\\|$)")
     private static let pair    = ["(":")", "[":"]", "{": "}", "\"":"\"", "\'": "\'"]
     private static let pairRe  = Re("(\\\\*)([()\"'{}\\[\\]])")
